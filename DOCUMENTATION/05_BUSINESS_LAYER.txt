@@ -1,0 +1,723 @@
+================================================================================
+BUSINESS LAYER AND SERVICES DOCUMENTATION
+================================================================================
+
+Module: Apache Roller Business Layer
+Location: app/src/main/java/org/apache/roller/weblogger/business
+
+================================================================================
+1. BUSINESS LAYER OVERVIEW
+================================================================================
+
+The business layer provides the core functionality and business logic for Apache
+Roller. It sits between the web layer (UI) and the data access layer (JPA).
+
+Architecture Pattern: Service Layer / Facade Pattern
+
+Key Characteristics:
+- Transaction management
+- Business rule enforcement
+- Data validation
+- Service encapsulation
+- Manager pattern forservices
+- Dependency injection via Google Guice
+
+Main Components:
+1. Manager Interfaces: Define service contracts
+2. Manager Implementations: Business logic implementation
+3. POJOs (Plain Old Java Objects): Data transfer objects
+4. Provider Interfaces: Plugin abstraction
+5. URL Strategy: URL generation logic
+
+================================================================================
+2. MANAGER PATTERN
+================================================================================
+
+2.1 Manager Interface Design
+
+Pattern:
+- Interface defines service contract
+- Implementation contains business logic
+- Retrieved via WebloggerFactory or Guice injection
+
+Standard Manager Methods:
+- getById(String id): Retrieve by primary key
+- save(Object obj): Create or update
+- remove(Object obj): Delete
+- query methods: Custom finders
+
+Transaction Handling:
+- Methods are transactional
+- Commit/rollback managed automatically
+- Read-only vs read-write transactions
+
+2.2 Core Manager Interfaces
+
+UserManager:
+- Purpose: User account management
+- Key Methods:
+  * getUser(String userId)
+  * getUserByUserName(String username)
+  * saveUser(User user)
+  * removeUser(User user)
+  * getUserRoles(User user)
+  * grantRole(String roleName, User user)
+  * revokeRole(String roleName, User user)
+- Responsibilities:
+  * User CRUD operations
+  * Authentication support
+  * Role management
+  * User search and listing
+
+WeblogManager:
+- Purpose: Blog management
+- Key Methods:
+  * getWeblog(String id)
+  * getWeblogByHandle(String handle)
+  * saveWeblog(Weblog weblog)
+  * removeWeblog(Weblog weblog)
+  * getUserWeblogs(User user)
+- Responsibilities:
+  * Blog CRUD operations
+  * Blog configuration
+  * User-blog associations
+  * Blog statistics
+
+WeblogEntryManager:
+- Purpose: Blog entry (posts) management
+- Key Methods:
+  * getWeblogEntry(String id)
+  * saveWeblogEntry(WeblogEntry entry)
+  * removeWeblogEntry(WeblogEntry entry)
+  * getWeblogEntries(Weblog weblog, Date startDate, Date endDate)
+  * publishWeblogEntry(WeblogEntry entry)
+- Responsibilities:
+  * Entry CRUD operations
+  * Publishing workflow
+  * Draft vs published status
+  * Entry queries and searches
+
+MediaFileManager:
+- Purpose: Media file management
+- Key Methods:
+  * getMediaFile(String id)
+  * saveMediaFile(Weblog weblog, MediaFile file)
+  * deleteMediaFile(Weblog weblog, MediaFile file)
+  * searchMediaFiles(Weblog weblog, MediaFileFilter filter)
+- Responsibilities:
+  * File metadata management
+  * Directory structure
+  * File storage integration
+  * Thumbnail generation
+
+BookmarkManager:
+- Purpose: Blogroll bookmark management
+- Key Methods:
+  * getBookmark(String id)
+  * saveBookmark(Bookmark bookmark)
+  * removeBookmark(Bookmark bookmark)
+- Responsibilities:
+  * Bookmark CRUD
+  * Folder organization
+  * Import/export
+
+OAuthManager:
+- Purpose: OAuth authentication management
+- Key Methods:
+  * getConsumer(String consumerKey)
+  * registerConsumer(OAuthConsumer consumer)
+- Responsibilities:
+  * OAuth consumer registration
+  * Access token management
+  * OAuth authorization flow
+
+ThemeManager:
+- Purpose: Blog theme management
+- Key Methods:
+  * getTheme(String id)
+  * getSharedTheme(String name)
+  * getWeblogTheme(Weblog weblog)
+- Responsibilities:
+  * Theme listing and retrieval
+  * Shared vs custom themes
+  * Template management
+
+PluginManager:
+- Purpose: Plugin system management
+- Key Methods:
+  * getWeblogEntryPlugins()
+  * getRendererPlugins()
+- Responsibilities:
+  * Plugin discovery
+  * Plugin lifecycle
+  * Plugin configuration
+
+IndexManager:
+- Purpose: Search index management
+- Key Methods:
+  * rebuil index()
+  * addEntryIndexOperation(WeblogEntry entry)
+  * executeIndexOperations()
+- Responsibilities:
+  * Lucene search index
+  * Index updates
+  * Search functionality
+
+PropertiesManager:
+- Purpose: System configuration management
+- Key Methods:
+  * getProperties()
+  * saveProperties(Map properties)
+  * getProperty(String name)
+- Responsibilities:
+  * System-wide configuration
+  * Dynamic properties
+  * Configuration persistence
+
+================================================================================
+3. DATA ACCESS LAYER
+================================================================================
+
+3.1 JPA Entity Management
+
+Technology: JPA (Java Persistence API)
+Provider: EclipseLink 4.0.5 (default) or Hibernate
+
+Entity Base Classes:
+- Typically no Java inheritance hierarchy
+- Each entity is standalone POJO
+- JPA annotations for mapping
+
+Common Entity Patterns:
+
+Primary Keys:
+```java
+@Id
+@Column(name = "id", nullable = false)
+private String id;            // UUID-based IDs
+```
+
+Relationships:
+```java
+@ManyToOne
+@JoinColumn(name = "userid")
+private User creator;         // Many entries to one user
+
+@OneToMany(mappedBy = "weblog", cascade = CascadeType.ALL)
+private List<WeblogEntry> entries;  // One blog, many entries
+```
+
+Temporal Fields:
+```java
+@Temporal(TemporalType.TIMESTAMP)
+@Column(name = "pubtime")
+private Date pubTime;         // Publication timestamp
+```
+
+Large Objects:
+```java
+@Lob
+@Column(name = "text")
+private String text;          // Blog entry content (CLOB)
+```
+
+3.2 Named Queries
+
+Definition Location: POJO classes via @NamedQuery annotation
+
+Pattern:
+```java
+@NamedQuery(
+    name = "WeblogEntry.getByWeblog",
+    query = "SELECT e FROM WeblogEntry e WHERE e.weblog = :weblog"
+)
+```
+
+Usage in Manager:
+```java
+List<WeblogEntry> entries = entityManager
+    .createNamedQuery("WeblogEntry.getByWeblog", WeblogEntry.class)
+    .setParameter("weblog", weblog)
+    .getResultList();
+```
+
+Benefits:
+- Pre-compiled queries
+- Type-safe results
+- Performance optimization
+- Centralized query definitions
+
+3.3 Transaction Management
+
+Transaction Demarcation:
+- Typically at manager method level
+- Annotations: @Transactional (if using Spring)
+- Explicit: EntityManager.getTransaction()
+
+Transaction Patterns:
+
+Read-Only Queries:
+```java
+@Transactional(readOnly = true)
+public List<Weblog> getAllWeblogs() {
+    // Query database
+}
+```
+
+Update Operations:
+```java
+@Transactional
+public void saveWeblog(Weblog weblog) {
+    if (weblog.getId() == null) {
+        entityManager.persist(weblog);  // Insert
+    } else {
+        entityManager.merge(weblog);     // Update
+    }
+}
+```
+
+Cascade Operations:
+- Defined via cascade attributes on relationships
+- CascadeType.PERSIST, MERGE, REMOVE, REFRESH, ALL
+
+Optimistic Locking:
+```java
+@Version
+private Long version;         // Automatic versioning
+```
+
+================================================================================
+4. DOMAIN OBJECTS (POJOs)
+================================================================================
+
+4.1 Core Domain Model
+
+Location: app/src/main/java/org/apache/roller/weblogger/pojos
+
+Key Entity Classes:
+
+User.java:
+- User account information
+- Credentials (username, password hash)
+- Profile (email, locale, timezone)
+- Enabled/disabled status
+- Date registered
+
+Weblog.java:
+- Blog configuration
+- Handle (URL identifier)
+- Name, description
+- Theme association
+- Locale and timezone
+- Owner (User)
+- Enabled status
+
+WeblogEntry.java:
+- Blog post content
+- Title, text (content)
+- Summary/excerpt
+- Publication time
+- Update time
+- Status (draft, published, scheduled)
+- Category
+- Tags (via association)
+- Comments (collection)
+- Creator (User)
+- Weblog association
+
+WeblogEntryComment.java:
+- Comment content
+- Name, email, URL
+- Comment text
+- Post time
+- Status (approved, pending, spam)
+- Association to WeblogEntry
+
+WeblogCategory.java:
+- Category name
+- Description
+- Weblog association
+- Position (ordering)
+
+WeblogEntryTag.java:
+- Tag name
+- Time created
+- Weblog and entry associations
+
+MediaFile.java:
+- File name and path
+- Content type (MIME)
+- Length (bytes)
+- Width/height (images)
+- Thumbnail path
+- Directory association
+- Upload time
+
+MediaDirectory.java:
+- Directory name
+- Parent directory (hierarchy)
+- Weblog association
+
+WeblogTemplate.java:
+- Template name
+- Description
+- Contents (Velocity code)
+- Last modified
+- Template type (page, custom, etc.)
+
+WeblogTheme.java:
+- Theme name
+- Description
+- Stylesheet
+- Preview image
+
+TaskLock.java:
+- Task name
+- Lock timestamp
+- Client identifier
+- Used for distributed task execution
+
+RollerPermission.java:
+- User + Weblog + Role
+- Defines who can do what on which blog
+
+GlobalPermission.java:
+- User + Role
+- System-wide permissions (admin, etc.)
+
+4.2 POJO Lifecycle
+
+Creation:
+```java
+WeblogEntry entry = new WeblogEntry();
+entry.setId(UUID.randomUUID().toString());
+entry.setTitle("My Post");
+entry.setText("Content...");
+entry.setWeblog(weblog);
+entry.setCreator(user);
+entry.setPubTime(new Date());
+entry.setStatus(WeblogEntry.DRAFT);
+```
+
+Persistence:
+```java
+weblogEntryManager.saveWeblogEntry(entry);
+```
+
+Query and Modify:
+```java
+WeblogEntry entry = weblogEntryManager.getWeblogEntry(id);
+entry.setStatus(WeblogEntry.PUBLISHED);
+weblogEntryManager.saveWeblogEntry(entry);
+```
+
+Deletion:
+```java
+weblogEntryManager.removeWeblogEntry(entry);
+```
+
+================================================================================
+5. PROVIDER PATTERN
+================================================================================
+
+5.1 Provider Interfaces
+
+DatabaseProvider:
+- Purpose: Database vendor abstraction
+- Implementation: Varies by database (MySQL, PostgreSQL, etc.)
+- Methods:
+  * getDatabaseProductName()
+  * getMaxRows()
+  * createTablesIfNecessary()
+
+FileContentManager:
+- Purpose: File storage abstraction
+- Implementations:
+  * FileFileContentManager: File system storage
+  * (Custom providers possible)
+- Methods:
+  * saveFileContent(Weblog, MediaFile, InputStream)
+  * getFileContent(Weblog, MediaFile)
+  * deleteFile(Weblog, MediaFile)
+
+MailProvider:
+- Purpose: Email sending abstraction
+- Implementations:
+  * JavaMailProvider: Standard JavaMail
+  * (Mock providers for testing)
+- Methods:
+  * sendMessage(from, to, subject, body)
+
+5.2 Provider Configuration
+
+Configuration Location: roller-custom.properties
+
+Selection Mechanism:
+- Class names specified in properties file
+- Loaded via reflection
+- Injected via Guice
+
+Example:
+```properties
+mediafile.storage.dir=/var/roller/mediafiles
+mail.configurationType=properties
+mail.from=noreply@example.com
+```
+
+================================================================================
+6. URL STRATEGY PATTERN
+================================================================================
+
+6.1 URL Strategy Abstraction
+
+Purpose: Generate URLs for different blog configurations
+
+Implementations:
+- MultiWeblogURLStrategy: Multiple blogs on subdomains/paths
+- PreviewURLStrategy: Preview mode URLs
+
+URL Types:
+- Weblog home: /blog/{handle}/
+- Entry permalink: /blog/{handle}/entry/{anchor}
+- Date archives: /blog/{handle}/date/{yyyy/mm/dd}
+- Category archives: /blog/{handle}/category/{category}
+- Tag pages: /blog/{handle}/tag/{tag}
+- Search results: /blog/{handle}/search?q={query}
+- Feeds: /blog/{handle}/feed/entries/atom
+
+Example Usage:
+```java
+URLStrategy urlStrategy = weblogger.getUrlStrategy();
+String url = urlStrategy.getWeblogURL(weblog, locale, absolute);
+```
+
+6.2 SEO-Friendly URLs
+
+Clean URLs:
+- No query parameters for main pages
+- Human-readable paths
+- Consistent structure
+
+Permalink Structure:
+- /entry/{entry-anchor} (short, memorable)
+- Anchor is URL-safe version of title
+
+Canonical URLs:
+- Generated for each page
+- Prevents duplicate content issues
+
+================================================================================
+7. BUSINESS RULES AND VALIDATION
+================================================================================
+
+7.1 Common Validation Rules
+
+User Validation:
+- Username: alphanumeric, 3-30 characters
+- Email: valid email format
+- Password: minimum length (configurable)
+
+Weblog Validation:
+- Handle: unique, alphanumeric, 3-30 characters
+- Name: required, max length
+
+Entry Validation:
+- Title: required
+- Text: required for published entries
+- Status: must be valid enum value
+
+Media File Validation:
+- File size: Within configured limits
+- File type: Must be in allowed list
+- File name: No path traversal characters
+
+7.2 Business Rules
+
+Publishing Rules:
+- Only owner/admin can publish entries
+- Draft entries not visible to public
+- Scheduled entries published at specified time
+
+Comment Rules:
+- Moderation based on blog settings
+- Spam filtering via banned words list
+- Comments can be disabled per entry
+
+Permission Rules:
+- User must have permission to edit blog
+- Roles: OWNER, ADMIN, AUTHOR, LIMITED
+- Each role has different capabilities
+
+================================================================================
+8. CACHING STRATEGY
+================================================================================
+
+8.1 Cache Levels
+
+JPA L2 Cache:
+- Enabled via EclipseLink configuration
+- Caches entities and query results
+- Configurable per entity
+
+Application-Level Caching:
+- Rendered pages (optional)
+- Search results
+- Tag clouds
+- Statistics
+
+Cache Invalidation:
+- On entity updates
+- Timed expiration
+- Manual flush
+
+8.2 Cache Configuration
+
+EclipseLink Cache:
+```xml
+<property name="eclipselink.cache.shared.default" value="false"/>
+<property name="eclipselink.cache.size.default" value="500"/>
+```
+
+Cache Types:
+- SOFT_WEAK: Memory-sensitive
+- HARD_WEAK: Keep frequently used
+- FULL: Keep everything
+- NONE: No caching
+
+================================================================================
+9. ASYNCHRONOUS PROCESSING
+================================================================================
+
+9.1 Background Tasks
+
+Task Types:
+- Search index updates
+- Feed fetching (Planet)
+- Email notifications
+- Statistics calculation
+
+Task Scheduling:
+- Implemented via scheduled tasks
+- Task locking for distributed execution
+- Configurable intervals
+
+HitCountQueue:
+- Asynchronous hit counter
+- Buffers hit counts
+- Periodic database updates
+
+9.2 Task Locking
+
+Purpose: Prevent duplicate task execution in clustered environments
+
+Mechanism:
+- TaskLock entity in database
+- Acquire lock before execution
+- Release lock on completion
+- Timeout for abandoned locks
+
+================================================================================
+10. ERROR HANDLING
+====================================================================
+
+===========
+
+Exception Hierarchy:
+
+RollerException:
+- Base exception for all Roller exceptions
+- Checked exception
+
+WebloggerException:
+- Weblogger-specific exceptions
+- Extends RollerException
+
+Specific Exceptions:
+- FileIOException: File operation failures
+- FileNotFoundException: Missing files
+- FilePathException: Invalid paths
+- BootstrapException: Initialization failures
+- InitializationException: Startup problems
+
+Exception Handling:
+- Manager methods throw appropriate exceptions
+- Web layer catches and displays user-friendly messages
+- Logging of all exceptions
+
+================================================================================
+11. INTEGRATION POINTS
+================================================================================
+
+11.1 Search Integration
+
+Apache Lucene Integration:
+- Full-text search indexing
+- Query parsing and execution
+- Index synchronization
+- Highlighting search results
+
+Index Manager:
+- Add/update/delete from index
+- Rebuild entire index
+- Search API
+
+11.2 Feed Integration
+
+ROME Library:
+- RSS 2.0 generation
+- Atom 1.0 generation
+- Feed parsing (Planet)
+- Podcast support
+
+Feed Types:
+- Entries feed
+- Comments feed
+- Custom feeds
+
+11.3 External Authentication
+
+Integration Options:
+- LDAP authentication
+- OpenID (deprecated)
+- OAuth (for APIs)
+- Custom authentication providers
+
+Spring Security Integration:
+- Pluggable authentication
+- Authorization rules
+- Remember-me services
+
+================================================================================
+12. PERFORMANCE CONSIDERATIONS
+================================================================================
+
+Query Optimization:
+- Use named queries
+- Fetch strategies (LAZY vs EAGER)
+- Batch fetching
+- Query result caching
+
+Connection Pooling:
+- JNDI DataSource recommended
+- Connection pool tuning
+- Connection leak detection
+
+Transaction Optimization:
+- Read-only transactions for queries
+- Minimize transaction scope
+- Batch operations where possible
+
+================================================================================
+13. RELATED DOCUMENTATION
+================================================================================
+
+See also:
+- 02_DATABASE.txt: Database and JPA details
+- 03_WEB_LAYER.txt: Web layer integration
+- 06_CONFIGURATION.txt: Business layer configuration
+- 00_PROJECT_OVERVIEW.txt: Architecture overview
+
+================================================================================
+END OF BUSINESS LAYER DOCUMENTATION
+Last Updated: January 2026
+================================================================================

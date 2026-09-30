@@ -1,0 +1,586 @@
+================================================================================
+APP MODULE DOCUMENTATION - MAIN APPLICATION
+================================================================================
+
+Module Name: app
+Type: Maven WAR Module
+Output: roller.war (Web Application Archive)
+Parent: roller-project (org.apache.roller:roller-project:6.1.5)
+
+================================================================================
+1. MODULE OVERVIEW
+================================================================================
+
+The 'app' module is the core web application module of Apache Roller. It contains
+all the business logic, web interfaces, data access layer, and resources needed
+to run the Roller blogging platform.
+
+Purpose:
+- Implements the complete web-based blogging application
+- Provides REST and web services for blog management
+- Handles user authentication and authorization
+- Manages blog content, comments, and media files
+- Renders blog themes using Velocity templates
+- Provides administrative interfaces
+
+Output Artifact:
+- roller.war: Deployable web application archive
+- Can be deployed to Apache Tomcat, Jetty, or other servlet containers
+
+================================================================================
+2. DIRECTORY STRUCTURE
+================================================================================
+
+app/
+├── pom.xml                          # Maven build configuration
+├── nbactions.xml                    # NetBeans IDE actions
+├── src/
+│   ├── main/
+│   │   ├── java/                   # Java source code
+│   │   │   └── org/apache/roller/
+│   │   │       ├── planet/         # Planet aggregator functionality
+│   │   │       ├── util/           # Utility classes
+│   │   │       └── weblogger/      # Main blogging functionality
+│   │   ├── resources/              # Java resource files
+│   │   │   ├── ApplicationResources*.properties  # I18N bundles
+│   │   │   ├── sql/                # Database scripts
+│   │   │   ├── log4j2.xml          # Logging configuration
+│   │   │   ├── struts.xml          # Struts2 configuration
+│   │   │   └── META-INF/           # JPA and other metadata
+│   │   ├── resources-filtered/     # Filtered resources (version info)
+│   │   └── webapp/                 # Web application content
+│   │       ├── WEB-INF/            # Protected web application config
+│   │       ├── roller-ui/          # Admin UI resources
+│   │       ├── themes/             # Blog themes
+│   │       ├── theme/              # Theme resources
+│   │       └── *.jsp               # Web pages
+│   └── test/
+│       ├── java/                   # Unit test source code
+│       └── resources/              # Test resources
+
+Total Files: ~927 files and subdirectories
+
+================================================================================
+3. SOURCE CODE ORGANIZATION
+================================================================================
+
+3.1 Package Structure: org.apache.roller
+
+Main Packages:
+
+A. org.apache.roller.planet
+   Purpose: Blog aggregation (Planet) functionality
+   Sub-packages:
+   - business/       : Business logic for planet aggregation
+   - config/         : Planet configuration
+   - pojos/          : Plain Old Java Objects (data models)
+   - tasks/          : Scheduled tasks for planet updates
+   - util/           : Planet-specific utilities
+
+B. org.apache.roller.util
+   Purpose: Common utility classes used throughout the application
+   Key Classes:
+   - DateUtil.java          : Date manipulation utilities
+   - ISO8601DateParser.java : ISO date format parsing
+   - PropertyExpander.java  : Property expansion utility
+   - RegexUtil.java         : Regular expression utilities
+   - RollerConstants.java   : Application constants
+   - UUIDGenerator.java     : UUID generation utility
+
+C. org.apache.roller.weblogger
+   Purpose: Core weblog (blog) functionality
+   Sub-packages:
+   - business/       : Business logic layer
+   - config/         : Configuration management
+   - pojos/          : Data model objects
+   - ui/             : Web UI layer (Struts2 actions)
+   - util/           : Weblogger-specific utilities
+   - (and many more)
+
+================================================================================
+4. KEY COMPONENTS
+================================================================================
+
+4.1 Business Layer (org.apache.roller.weblogger.business)
+
+Key Classes and Interfaces:
+
+- AbstractURLStrategy.java     : Base class for URL generation strategies
+- BookmarkManager.java         : Manages blogroll bookmarks
+- DatabaseProvider.java        : Database vendor abstraction
+- FileContentManager.java      : File content storage interface
+- FileContentManagerImpl.java  : File content storage implementation
+- GuiceWebloggerProvider.java  : Google Guice dependency injection provider
+- HitCountQueue.java          : Asynchronous hit counter
+- MailProvider.java           : Email service abstraction
+- MediaFileManager.java       : Media file management
+- MultiWeblogURLStrategy.java : Multiple blog URL strategy
+- OAuthManager.java           : OAuth authentication manager
+- PreviewURLStrategy.java     : Preview mode URL strategy
+- Weblogger.java              : Main facade for business operations
+
+Purpose:
+- Implements all core business logic
+- Provides service interfaces for web layer
+- Manages transactions and data persistence
+- Handles system initialization and configuration
+
+4.2 Data Model (POJOs - Plain Old Java Objects)
+
+Location: org.apache.roller.weblogger.pojos
+
+Common POJO Patterns:
+- JPA annotations for ORM mapping
+- Getters and setters for properties
+- Relationships between entities
+- Serializable implementation
+
+Key Entity Types:
+- User entities (authentication, profiles)
+- Weblog entities (blogs, entries, comments)
+- Media entities (files, directories)
+- Configuration entities (settings, templates)
+- Security entities (roles, permissions)
+
+4.3 Web Layer (org.apache.roller.weblogger.ui)
+
+Technology: Apache Struts2 MVC framework
+
+Components:
+- Actions: Struts2 action classes for handling requests
+- Interceptors: Request/response processing interceptors
+- Renderers: Content rendering components
+- Validators: Form and input validation
+
+Request Flow:
+1. Client request arrives
+2. Struts2 filters process request
+3. Action class method executed
+4. Business logic invoked via managers
+5. Result rendered (JSP or JSON)
+6. Response sent to client
+
+4.4 Data Access Layer
+
+Technology: JPA (Java Persistence API) with Hibernate
+
+Configuration:
+- Location: src/main/resources/META-INF/persistence.xml
+- Provider: Hibernate ORM
+- Database Support: MySQL, PostgreSQL, Derby, Oracle, DB2, MSSQL, HSQLDB
+
+Features:
+- Entity-relationship mapping
+- Transaction management
+- Query optimization
+- Caching strategies
+- Connection pooling
+
+================================================================================
+5. RESOURCE FILES
+================================================================================
+
+5.1 Internationalization (I18N)
+
+Files: ApplicationResources*.properties
+
+Supported Languages:
+- ApplicationResources.properties        (English - default)
+- ApplicationResources_de.properties     (German)
+- ApplicationResources_es.properties     (Spanish)
+- ApplicationResources_fr.properties     (French)
+- ApplicationResources_ja.properties     (Japanese)
+- ApplicationResources_ko.properties     (Korean)
+- ApplicationResources_ru.properties     (Russian)
+- ApplicationResources_zh_CN.properties  (Chinese - Simplified)
+
+Purpose:
+- Localized text and messages
+- UI labels and descriptions
+- Error messages
+- Form validation messages
+
+5.2 Database Scripts (src/main/resources/sql/)
+
+Script Types:
+
+A. Database Creation Scripts:
+   - createdb.vm: Velocity template for table creation
+   - control.vm: Main control template
+   - macros.vm: Common SQL macros
+
+B. Migration Scripts:
+   - 310-to-400-migration.vm: Version 3.1.0 to 4.0.0
+   - 400-to-500-migration.vm: Version 4.0.0 to 5.0.0
+   - 500-to-510-migration.vm: Version 5.0.0 to 5.1.0
+   - 510-to-520-migration.vm: Version 5.1.0 to 5.2.0
+   - 520-to-610-migration.vm: Version 5.2.0 to 6.1.0
+
+C. Database-Specific Configurations:
+   - db2/: IBM DB2 database support
+   - derby/: Apache Derby support
+   - hsqldb/: HyperSQL database support
+   - mssql/: Microsoft SQL Server support
+   - mysql/: MySQL database support
+   - oracle/: Oracle database support
+   - postgresql/: PostgreSQL database support
+
+Each database folder contains:
+   - *.properties: Database-specific SQL syntax
+   - SQL scripts with vendor-specific optimizations
+
+D. Utility Scripts:
+   - droptables.sql: Remove all Roller tables
+
+5.3 Configuration Files
+
+A. Struts 2 Configuration:
+   File: struts.xml
+   Purpose:
+   - Define action mappings
+   - Configure interceptors
+   - Set result types
+   - Define validation rules
+
+B. Struts Properties:
+   File: struts.properties
+   Purpose:
+   - Struts2 runtime configuration
+   - Development mode settings
+   - Upload limits and constraints
+
+C. Logging Configuration:
+   File: log4j2.xml
+   Purpose:
+   - Define log levels
+   - Configure appenders (console, file)
+   - Set log formats
+   - Manage logger hierarchies
+
+D. Other Configuration:
+   - rome.properties: ROME RSS/Atom library configuration
+   - propono.properties: Propono AtomPub protocol configuration
+   - bannedwordslist.txt: Comment spam filter word list
+
+================================================================================
+6. WEB APPLICATION CONTENT (webapp/)
+================================================================================
+
+6.1 Web Application Descriptor
+
+File: WEB-INF/web.xml
+Purpose:
+- Servlet mappings
+- Filter configurations
+- Context parameters
+- Security constraints
+- Error page mappings
+- Session configuration
+
+6.2 JSP Pages
+
+Location: webapp/*.jsp and subdirectories
+
+Index Page:
+- index.jsp: Application landing page
+
+Purpose:
+- Server-side dynamic content generation
+- Integration with Struts2 framework
+- User interface rendering
+- Form handling
+
+6.3 Administrative UI
+
+Location: webapp/roller-ui/
+
+Contents:
+- JavaScript libraries
+- CSS stylesheets
+- Admin interface components
+- Management tools UI
+
+Technologies:
+- jQuery for client-side interactions
+- Bootstrap or similar CSS framework
+- AJAX for asynchronous operations
+
+6.4 Themes System
+
+Location: webapp/themes/
+
+Purpose:
+- Blog presentation templates
+- Velocity template files
+- Theme-specific resources
+- CSS and JavaScript for themes
+
+Theme Structure:
+- Each theme in separate directory
+- Velocity templates (.vm files)
+- CSS stylesheets
+- JavaScript files
+- Theme metadata
+
+6.5 Static Resources
+
+Favicons:
+- favicon.svg: Default favicon
+- favicon-red.svg: Red variant
+- favicon-rw.svg: Read-write variant
+- favicon-feed.svg: Feed icon
+
+Other Resources:
+- images/: Image assets
+- robots.txt: Search engine crawler instructions
+
+================================================================================
+7. BUILD CONFIGURATION
+================================================================================
+
+Maven POM Configuration:
+
+Parent: org.apache.roller:roller-project:6.1.5
+Artifact: org.apache.roller:app:6.1.5
+Packaging: WAR
+
+Key Build Features:
+- Maven WAR plugin for packaging
+- Resource filtering for version substitution
+- Jetty plugin for development server
+- JPA metamodel generation
+- Dependency management
+
+Development Server:
+- Plugin: jetty-maven-plugin
+- Command: mvn jetty:run
+- URL: http://localhost:8080/roller
+- Hot reload: Supported for most changes
+
+Testing:
+- Framework: JUnit Jupiter 5.x
+- Test Directory: src/test/java
+- Test runner: Maven Surefire Plugin
+- Coverage: Configurable
+
+================================================================================
+8. DEPENDENCIES
+================================================================================
+
+Major Dependencies (examples):
+
+Web Framework:
+- Apache Struts 2: MVC framework
+- Servlet API: Web container interface
+
+ORM and Database:
+- Hibernate: JPA provider
+- Various JDBC drivers (MySQL, PostgreSQL, etc.)
+- Apache Derby: Embedded database
+
+Templating and Content:
+- Apache Velocity: Template engine
+- ROME: RSS/Atom feed library
+- Apache Commons: Utility libraries
+
+Dependency Injection:
+- Google Guice: DI framework
+
+Security:
+- Spring Security: Authentication/authorization
+- Apache Commons Codec: Encoding/decoding
+
+Logging:
+- SLF4J: Logging facade
+- Log4j 2: Logging implementation
+
+Utilities:
+- Apache Commons IO, Lang, Collections
+- Google Guava: Core libraries
+
+(See pom.xml for complete dependency list)
+
+================================================================================
+9. DEVELOPMENT GUIDELINES
+================================================================================
+
+Code Organization:
+- Follow package-by-feature structure
+- Keep business logic in service layer
+- Use POJOs for data transfer
+- Implement DAO pattern for data access
+
+Naming Conventions:
+- Managers: Business service interfaces (*Manager.java)
+- Implementations: Service implementations (*ManagerImpl.java)
+- POJOs: Data objects in pojos packages
+- Actions: Struts2 actions (*Action.java)
+
+Testing:
+- Unit tests for business logic
+- Integration tests for controllers
+- Selenium tests for UI (separate module)
+
+Configuration:
+- Externalize configuration in properties files
+- Use dependency injection for flexibility
+- Support multiple databases via abstraction
+
+================================================================================
+10. DEPLOYMENT ARTIFACTS
+================================================================================
+
+Build Output:
+- Location: app/target/
+- Primary: roller.war
+- Size: ~50-80MB (with dependencies)
+
+WAR Contents:
+- /WEB-INF/classes/: Compiled Java classes
+- /WEB-INF/lib/: Dependency JARs
+- /WEB-INF/: Configuration files
+- /: Web content (JSP, HTML, CSS, JS)
+
+Deployment:
+- Copy roller.war to Tomcat webapps/
+- Configure roller-custom.properties
+- Configure database connection
+- Restart Tomcat
+- Access http://localhost:8080/roller
+
+================================================================================
+11. INITIALIZATION PROCESS
+================================================================================
+
+Application Startup Sequence:
+1. Servlet container loads web.xml
+2. Spring/Guice initializes dependency injection
+3. DatabaseProvider initializes connection pool
+4. Hibernate validates/updates schema
+5. Configuration loaded from properties
+6. Managers and services initialized
+7. Struts2 framework configured
+8. Application ready for requests
+
+First-Time Setup:
+1. Access application URL
+2. Installer checks for existing database
+3. If not found, runs installation wizard
+4. User creates admin account
+5. Database schema created
+6. Default configuration set
+7. Application ready for use
+
+================================================================================
+12. MONITORING AND MAINTENANCE
+================================================================================
+
+Logging:
+- Configuration: log4j2.xml
+- Log Location: Configured per deployment
+- Log Levels: DEBUG, INFO, WARN, ERROR
+- Categories: Per package/class
+
+Performance Monitoring:
+- JMX enabled (configurable)
+- Hibernate statistics
+- Connection pool metrics
+- Request/response times
+
+Maintenance Tasks:
+- Database backups (external)
+- Log rotation
+- Cache management
+- Index rebuilding (if using search features)
+
+================================================================================
+13. SECURITY FEATURES
+================================================================================
+
+Authentication:
+- Form-based login
+- Remember-me functionality
+- OAuth support available
+- Password encryption
+
+Authorization:
+- Role-based access control (RBAC)
+- Blog-level permissions
+- Administrative privileges
+- Guest/anonymous access control
+
+Protection Mechanisms:
+- CSRF token validation
+- XSS prevention in templates
+- SQL injection prevention via ORM
+- Input validation and sanitization
+- Comment spam filtering (bannedwordslist.txt)
+
+================================================================================
+14. API AND INTEGRATION
+================================================================================
+
+Web Services:
+- AtomPub protocol support
+- MetaWeblog API support
+- XML-RPC interfaces
+- REST-style endpoints
+
+Integration Points:
+- RSS/Atom feed generation
+- Email notifications
+- External authentication providers
+- Media storage backends
+
+Extensibility:
+- Plugin system (configurable)
+- Custom themes
+- Template customization
+- Event listeners
+
+================================================================================
+15. TROUBLESHOOTING
+================================================================================
+
+Common Issues:
+
+1. Database Connection Errors:
+   - Check JDBC driver in WEB-INF/lib
+   - Verify database connection properties
+   - Ensure database is running
+   - Check firewall settings
+
+2. Deployment Failures:
+   - Verify Java 11+ installed
+   - Check server logs for errors
+   - Ensure sufficient memory allocated
+   - Verify all dependencies present
+
+3. Theme Issues:
+   - Clear browser cache
+   - Check Velocity template syntax
+   - Verify theme configuration
+   - Review server logs for errors
+
+4. Performance Problems:
+   - Increase JVM heap size
+   - Enable database connection pooling
+   - Configure caching appropriately
+   - Optimize database queries
+
+================================================================================
+16. RELATED DOCUMENTATION
+================================================================================
+
+See also:
+- 02_DATABASE.txt: Database schema documentation
+- 03_WEB_LAYER.txt: Struts2 actions and JSP pages
+- 04_BUSINESS_LAYER.txt: Service and manager classes
+- 05_TEMPLATES.txt: Velocity themes and templates
+- 06_CONFIGURATION.txt: Configuration files reference
+- 00_PROJECT_OVERVIEW.txt: Overall project documentation
+
+================================================================================
+END OF APP MODULE DOCUMENTATION
+Last Updated: January 2026
+================================================================================

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings version="2.0" xmlns="http://java.sun.com/xml/ns/persistence/orm"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm http://java.sun.com/xml/ns/persistence/orm_2_0.xsd">
+    <package>org.apache.roller.weblogger.pojos</package>
+    <entity metadata-complete="true" name="BugReport" class="org.apache.roller.weblogger.pojos.BugReport"
+            access="PROPERTY">
+        <table name="roller_bug_report"/>
+        <named-query name="BugReport.getAll">
+            <query>SELECT b FROM BugReport b ORDER BY b.createdTime DESC</query>
+        </named-query>
+        <named-query name="BugReport.getByStatus">
+            <query>SELECT b FROM BugReport b WHERE b.status = ?1 ORDER BY b.createdTime DESC</query>
+        </named-query>
+        <named-query name="BugReport.getByReporter">
+            <query>SELECT b FROM BugReport b WHERE b.reporter = ?1 ORDER BY b.createdTime DESC</query>
+        </named-query>
+        <named-query name="BugReport.countByStatus">
+            <query>SELECT COUNT(b) FROM BugReport b WHERE b.status = ?1</query>
+        </named-query>
+        <attributes>
+            <id name="id">
+                <column name="id"/>
+            </id>
+            <basic name="title">
+                <column name="title" insertable="true" updatable="true"/>
+            </basic>
+            <basic name="description">
+                <column name="description" insertable="true" updatable="true"/>
+                <lob/>
+            </basic>
+            <basic name="status">
+                <column name="status" insertable="true" updatable="true" length="20"/>
+                <enumerated>STRING</enumerated>
+            </basic>
+            <basic name="severity">
+                <column name="severity" insertable="true" updatable="true" length="20"/>
+                <enumerated>STRING</enumerated>
+            </basic>
+            <basic name="createdTime">
+                <column name="created_time" insertable="true" updatable="true"/>
+                <temporal>TIMESTAMP</temporal>
+            </basic>
+            <basic name="updatedTime">
+                <column name="updated_time" insertable="true" updatable="true"/>
+                <temporal>TIMESTAMP</temporal>
+            </basic>
+            <basic name="resolvedTime">
+                <column name="resolved_time" insertable="true" updatable="true"/>
+                <temporal>TIMESTAMP</temporal>
+            </basic>
+            <basic name="adminNotes">
+                <column name="admin_notes" insertable="true" updatable="true" length="1000"/>
+            </basic>
+            <many-to-one name="reporter" fetch="LAZY">
+                <join-column name="reporter_id"/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

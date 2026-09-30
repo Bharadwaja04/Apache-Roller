@@ -1,0 +1,403 @@
+================================================================================
+APACHE ROLLER PROJECT - COMPLETE DOCUMENTATION
+================================================================================
+
+Project Name: Apache Roller
+Version: 6.1.5
+Type: Java-based Multi-user Blog Server
+License: Apache License 2.0
+Inception Year: 2002
+
+================================================================================
+1. PROJECT OVERVIEW
+================================================================================
+
+Apache Roller is an open-source, enterprise-grade blog server application built 
+with Java. It provides a complete blogging platform suitable for both individual 
+bloggers and large-scale blog hosting sites with multiple users and groups.
+
+Key Features:
+- Multi-user and group blog support
+- Full-featured blog management system
+- Template-based customization using Velocity
+- RSS/Atom feed support via ROME library
+- Rich text editing capabilities
+- Comment management and moderation
+- Category and tag organization
+- Media file management
+- Plugin architecture for extensibility
+
+================================================================================
+2. TECHNOLOGY STACK
+================================================================================
+
+Core Technologies:
+- Java 11 (minimum required version)
+- Apache Maven (build and dependency management)
+- Servlet API (web application framework)
+
+Key Frameworks and Libraries:
+- Apache Struts2: MVC framework for web layer
+- Apache Velocity: Template engine for dynamic content rendering
+- ROME: RSS and Atom feed handling
+- Google Guice: Dependency injection framework
+- SLF4J 1.7.36: Logging facade
+- JAXB 2.3.1: XML binding
+
+Database Support:
+- Apache Derby 10.11.1.1 (embedded database for development)
+- MySQL (recommended for production)
+- PostgreSQL (supported)
+- Other JDBC-compliant databases
+
+Application Servers:
+- Apache Tomcat (recommended)
+- Eclipse Jetty 10.0.24 (development and testing)
+- Other Java EE compatible servers
+
+================================================================================
+3. PROJECT STRUCTURE
+================================================================================
+
+The project follows a Maven multi-module structure:
+
+roller-project/                 # Root project (parent POM)
+├── app/                       # Main web application module
+├── db-utils/                  # Database utilities and migration scripts
+├── it-selenium/               # Selenium-based integration tests
+├── assembly-release/          # Release packaging configuration
+├── docs/                      # Documentation files
+├── docker/                    # Docker configuration files
+├── binary-includes/           # Binary dependencies and licenses
+└── testing/                   # Testing utilities and resources
+
+================================================================================
+4. MODULE DESCRIPTIONS
+================================================================================
+
+4.1 app/
+   Purpose: Core web application containing all business logic, web interfaces,
+            and resources
+   Output: WAR (Web Application Archive) file
+   Key Contents:
+   - Java source code (business logic, data access, web controllers)
+   - JSP pages (JavaServer Pages for UI)
+   - Velocity templates (blog themes and layouts)
+   - Configuration files (Spring, Hibernate, etc.)
+   - Static resources (CSS, JavaScript, images)
+
+4.2 db-utils/
+   Purpose: Database schema management and migration utilities
+   Contains: SQL scripts, database initialization tools
+
+4.3 it-selenium/
+   Purpose: Automated browser-based integration testing
+   Technology: Selenium WebDriver
+   Note: Currently commented out in parent POM
+
+4.4 assembly-release/
+   Purpose: Creates distributable packages for official releases
+   Output: ZIP/TAR.GZ archives with complete installation packages
+
+4.5 docs/
+   Purpose: User and developer documentation
+   Formats: ASCII Doc, ODT (OpenDocument Text)
+   Includes: Installation guide, user guide, template guide
+
+================================================================================
+5. BUILD SYSTEM
+================================================================================
+
+Build Tool: Apache Maven
+Parent POM: pom.xml (project root)
+Group ID: org.apache.roller
+Artifact ID: roller-project
+Version: 6.1.5
+
+Maven Goals:
+- mvn clean install          : Build entire project
+- mvn -DskipTests=true install : Build without running tests
+- mvn jetty:run             : Run application in Jetty server
+- mvn test                  : Run unit tests
+- mvn verify                : Run integration tests
+
+Build Properties:
+- Java Version: 11 (release target)
+- Source Encoding: UTF-8
+- Compiler: Maven Compiler Plugin 3.13.0
+- Compiler Arguments: -Xlint:all (all warnings enabled)
+
+Maven Modules:
+1. app
+2. db-utils
+(Note: it-selenium module is currently disabled)
+
+================================================================================
+6. DEPLOYMENT OPTIONS
+================================================================================
+
+6.1 Development/Testing Deployment (Maven + Jetty):
+   Requirements: Java 11+, Maven 3.x
+   Steps:
+   1. Clone repository
+   2. Run: mvn -DskipTests=true install
+   3. Run: mvn jetty:run
+   4. Access: http://localhost:8080/roller
+   Database: Embedded Derby (in-memory, non-persistent)
+
+6.2 Docker Deployment:
+   Requirements: Docker, Docker Compose
+   Steps:
+   1. Clone repository
+   2. Run: docker-compose up
+   3. Access: http://localhost:8080/roller
+   Database: PostgreSQL (containerized)
+
+6.3 Production Deployment:
+   Requirements: Java 11+, Apache Tomcat 9+, MySQL/PostgreSQL
+   Steps:
+   1. Build WAR file: mvn clean install
+   2. Configure database (see Installation Guide)
+   3. Configure roller-custom.properties
+   4. Deploy WAR to Tomcat
+   5. Start Tomcat and access application
+
+================================================================================
+7. CONFIGURATION
+================================================================================
+
+Configuration Files Location: app/src/main/webapp/WEB-INF/
+
+Key Configuration Files:
+- roller-custom.properties: Custom installation settings
+- web.xml: Web application descriptor
+- applicationContext.xml: Spring framework configuration
+- struts.xml: Struts2 MVC configuration
+- hibernate.cfg.xml: Database ORM configuration
+- log4j.properties: Logging configuration
+
+Environment-specific Configuration:
+- Development: Uses embedded Derby database by default
+- Production: Requires external database configuration
+- Docker: Uses environment variables for configuration
+
+================================================================================
+8. DIRECTORY STRUCTURE STANDARDS
+================================================================================
+
+Java Source Code:
+  Location: app/src/main/java/
+  Package Convention: org.apache.roller.*
+  Structure: Organized by layer (business, weblogger, ui, etc.)
+
+Web Resources:
+  Location: app/src/main/webapp/
+  Contains: JSP pages, static files, WEB-INF configuration
+
+Test Code:
+  Location: app/src/test/java/
+  Test Framework: JUnit Jupiter 5.11.4
+  Convention: Test classes named *Test.java
+
+Resources:
+  Location: app/src/main/resources/
+  Contains: Property files, SQL scripts, XML configurations
+
+================================================================================
+9. SOURCE CODE MANAGEMENT
+================================================================================
+
+Version Control: Git
+Repository: https://github.com/apache/roller
+SCM Connection: scm:git:git://github.com/apache/roller.git
+Developer Connection: scm:git:git@github.com:apache/roller.git
+
+Branch Strategy: (Apache Project Standards)
+- master/trunk: Main development branch
+- Release branches: For version maintenance
+
+================================================================================
+10. DOCUMENTATION RESOURCES
+================================================================================
+
+Official Documentation:
+- Roller Website: http://roller.apache.org
+- GitHub Repository: https://github.com/apache/roller
+- Wiki (Confluence): https://cwiki.apache.org/confluence
+
+Key Documentation Files in this project:
+- README.md: Quick start guide
+- CONTRIBUTING.md: Contribution guidelines
+- LICENSE.txt: Apache License 2.0 full text
+- NOTICE.txt: Copyright and attribution notices
+- docs/: Complete user and administrator guides
+
+External Resources:
+- How to build and run: https://cwiki.apache.org/confluence/x/EM4
+- How to contribute: https://cwiki.apache.org/confluence/x/2hsB
+- Developer resources: https://cwiki.apache.org/confluence/x/D84
+
+================================================================================
+11. DEVELOPMENT WORKFLOW
+================================================================================
+
+Standard Development Cycle:
+1. Set up development environment (Java 11+, Maven, IDE)
+2. Clone repository from GitHub
+3. Build project: mvn clean install
+4. Run tests: mvn test
+5. Start development server: mvn jetty:run
+6. Make code changes
+7. Test changes locally
+8. Run full test suite: mvn verify
+9. Commit and push changes
+10. Submit pull request (for contributors)
+
+IDE Support:
+- IntelliJ IDEA: Maven plugin for source download enabled
+- Eclipse: Maven integration supported
+- NetBeans: nbactions.xml provided for common tasks
+
+================================================================================
+12. QUALITY ASSURANCE
+================================================================================
+
+Testing Strategy:
+- Unit Tests: JUnit-based tests in app/src/test/
+- Integration Tests: Selenium-based browser tests (it-selenium module)
+- Manual Testing: User acceptance testing procedures
+
+Code Quality Tools:
+- Maven Compiler: Lint warnings enabled (-Xlint:all)
+- Code Coverage: (tools configured per module)
+- Static Analysis: (configured per development requirements)
+
+================================================================================
+13. SECURITY CONSIDERATIONS
+================================================================================
+
+Security Features:
+- User authentication and authorization
+- Role-based access control
+- XSS protection in templates
+- SQL injection prevention via ORM (Hibernate)
+- CSRF protection in forms
+
+Security Updates:
+- Regular dependency updates via Maven
+- Version plugin configured for dependency management
+- Security advisories monitored through Apache channels
+
+================================================================================
+14. PERFORMANCE CHARACTERISTICS
+================================================================================
+
+Scalability:
+- Multi-user capable (hundreds to thousands of users)
+- Database-driven architecture
+- Caching strategies implemented
+- Static resource optimization
+
+Resource Requirements:
+- Minimum JVM Heap: 512MB (development)
+- Recommended Heap: 1GB-2GB (production)
+- Database: Varies by usage (scale accordingly)
+- Disk Space: 100MB+ for application, additional for media files
+
+================================================================================
+15. LICENSING AND LEGAL
+================================================================================
+
+Primary License: Apache License 2.0
+Copyright: Apache Software Foundation (ASF)
+Inception: 2002
+
+License Files:
+- LICENSE.txt: Full Apache License 2.0 text
+- NOTICE.txt: Required attributions and notices
+- binary-includes/: Licenses for bundled third-party components
+
+Contribution:
+- All contributions must be under Apache License 2.0
+- Contributors License Agreement (CLA) required
+- See CONTRIBUTING.md for details
+
+================================================================================
+16. SUPPORT AND COMMUNITY
+================================================================================
+
+Community Resources:
+- Mailing Lists: Available through Apache Roller project
+- Issue Tracker: Apache JIRA or GitHub Issues
+- Documentation: Confluence Wiki
+- Source Code: GitHub repository
+
+Getting Help:
+- Check documentation in docs/ directory
+- Review Confluence wiki pages
+- Search mailing list archives
+- Submit issues on GitHub
+
+Contributing:
+- Read CONTRIBUTING.md
+- Follow Apache contribution guidelines
+- Submit pull requests on GitHub
+- Engage with community on mailing lists
+
+================================================================================
+17. VERSIONING AND RELEASES
+================================================================================
+
+Current Version: 6.1.5
+Versioning Scheme: Semantic Versioning (MAJOR.MINOR.PATCH)
+
+Version Information:
+- Defined in: Parent pom.xml
+- Property: ${roller.version}
+- Applied to: All modules
+
+Release Process:
+- Assembly module: Creates distribution packages
+- Release notes: Maintained by project team
+- Distribution: Via Apache mirrors and GitHub releases
+
+================================================================================
+18. FUTURE ROADMAP
+================================================================================
+
+Project Evolution:
+- Ongoing maintenance and security updates
+- Community-driven feature development
+- Framework and dependency updates
+- Performance improvements
+- Modern UI enhancements
+
+Technology Updates:
+- Java version compatibility
+- Framework upgrades (Struts2, Spring, etc.)
+- Database driver updates
+- Front-end modernization
+
+================================================================================
+19. RELATED DOCUMENTATION FILES
+================================================================================
+
+This documentation package includes:
+- 00_PROJECT_OVERVIEW.txt (this file)
+- 01_APP_MODULE.txt: Detailed application module documentation
+- 02_DATABASE.txt: Database schema and utilities documentation
+- 03_WEB_LAYER.txt: Web interface and controllers documentation
+- 04_BUSINESS_LAYER.txt: Business logic and services documentation
+- 05_TEMPLATES.txt: Velocity templates and theming documentation
+- 06_CONFIGURATION.txt: Configuration files and properties documentation
+- 07_TESTING.txt: Testing infrastructure and procedures documentation
+- 08_DEPLOYMENT.txt: Deployment guides for various environments
+- 09_DOCKER.txt: Docker and containerization documentation
+- 10_API_REFERENCE.txt: API and service layer reference
+
+================================================================================
+END OF PROJECT OVERVIEW DOCUMENTATION
+Document Version: 1.0
+Last Updated: January 2026
+Maintained by: Project Documentation Team
+================================================================================

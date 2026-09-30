@@ -1,0 +1,83 @@
+# Apache Roller Feature Implementation & Debugging Summary
+
+## 1. Starring / Favourite Feature
+**Objective:** Allow users to "star" (favourite) weblogs and individual blogposts for quick access from their home page.
+
+### Persistent Layer Changes
+- **New POJOs:**
+    - `StarredWeblog.java`: Represents a user's favourited weblog.
+    - `StarredEntry.java`: Represents a user's favourited blogpost.
+- **ORM Configuration:**
+    - `StarredWeblog.orm.xml` & `StarredEntry.orm.xml`: Defined JPA mappings and named queries for retrieval and deletion.
+- **JPA Management:**
+    - `JPAUserManagerImpl.java`: Added logic to remove associated `StarredWeblog` and `StarredEntry` records when a user is deleted to maintain data integrity.
+    - `JPAWeblogEntryManagerImpl.java`: Updated `removeWeblogEntry` to delete associated `StarredEntry` records.
+    - `WeblogRemovalService.java`: Implemented `removeStarredWeblogs` to clean up starred data when a weblog is removed.
+
+### Schema Changes
+- **`createdb.sql` & `droptables.sql`**: Added `ROLLER_STARRED_WEBLOG` and `ROLLER_STARRED_ENTRY` tables with appropriate foreign key constraints (cascading deletes at the database level where supported).
+
+### UI & Business Logic
+- **Actions:**
+    - Implemented Struts2 actions to toggle star status for both weblogs and entries.
+    - Updated `MainMenu` action to fetch the list of starred weblogs, sorted by the most recent post date.
+    - Created a paginated view for starred entries.
+- **Views:**
+    - `bannerStatus.jsp`: Added "Star Blog" / "Unstar Blog" button.
+    - `Entries.jsp`: Added "Star Post" icon next to individual entries.
+    - `MainMenu.jsp`: Integrated the list of starred weblogs with "Last Posted" timestamps.
+    - `StarredEntries.jsp`: New page to display favourited posts with pagination support.
+
+---
+
+## 2. Web Translation Feature (Sarvam AI & MyMemory)
+**Objective:** Provide real-time translation for blogposts into 5+ Indian languages using the Strategy Design Pattern.
+
+### Frontend Implementation
+- **JavaScript Strategy Pattern:**
+    - `TranslationStrategy.js`: Interface for translation logic.
+    - `SarvamStrategy.js`: Implementation using Sarvam AI via a Node.js proxy.
+    - `MyMemoryStrategy.js`: Implementation using the MyMemory API.
+- **UI Components:**
+    - Added a language selection toolbar in the header.
+    - Implemented persistence using `localStorage` so the selected language remains active across page navigations.
+
+### Backend Implementation
+- **Translation Proxy (`frontend/server.js`):**
+    - A Node.js Express server acting as a secure proxy for Sarvam AI API calls.
+    - Handles CORS and API key management to prevent exposing secrets in the browser.
+
+---
+
+## 3. Debugging & Environment Restoration
+**Objective:** Resolve critical blockers preventing the application from running.
+
+- **Port Conflicts:** Identified and resolved a conflict on port 8080 (already in use by another process), allowing the Jetty server to start.
+- **Database Connectivity:**
+    - Fixed an issue where the Derby In-Memory database wasn't starting correctly on port 4224.
+    - Manually wiped the in-memory state and re-initialized the schema through the Roller Auto-Installer to resolve "Table already exists" errors during development.
+- **Translation Proxy Connectivity:** Resolved `net::ERR_CONNECTION_REFUSED` by ensuring the Node.js server was properly started and configured with `cors`.
+
+---
+
+## Summary of Files Impacted
+### Created
+- `app/src/main/java/org/apache/roller/weblogger/pojos/StarredWeblog.java`
+- `app/src/main/java/org/apache/roller/weblogger/pojos/StarredEntry.java`
+- `app/src/main/resources/org/apache/roller/weblogger/pojos/StarredWeblog.orm.xml`
+- `app/src/main/resources/org/apache/roller/weblogger/pojos/StarredEntry.orm.xml`
+- `app/src/main/webapp/WEB-INF/jsps/core/StarredEntries.jsp`
+- `frontend/server.js` (Node.js Proxy)
+- `frontend/src/strategies/SarvamStrategy.js`
+- `frontend/src/strategies/MyMemoryStrategy.js`
+
+### Modified
+- `app/src/main/java/org/apache/roller/weblogger/business/jpa/JPAUserManagerImpl.java`
+- `app/src/main/java/org/apache/roller/weblogger/business/jpa/JPAWeblogEntryManagerImpl.java`
+- `app/src/main/java/org/apache/roller/weblogger/business/jpa/WeblogRemovalService.java`
+- `app/src/main/resources/sql/derby/createdb.sql`
+- `app/src/main/webapp/WEB-INF/jsps/core/MainMenu.jsp`
+- `app/src/main/webapp/WEB-INF/jsps/layout/bannerStatus.jsp`
+- `app/src/main/webapp/WEB-INF/jsps/editor/Entries.jsp`
+- `app/src/main/resources/struts.xml`
+- `app/src/main/resources/persistence.xml`

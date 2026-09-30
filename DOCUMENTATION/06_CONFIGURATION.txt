@@ -1,0 +1,590 @@
+================================================================================
+CONFIGURATION FILES AND PROPERTIES DOCUMENTATION
+================================================================================
+
+Apache Roller Configuration Reference
+Location: Various (see below for each file)
+
+================================================================================
+1. CONFIGURATION OVERVIEW
+================================================================================
+
+Apache Roller uses multiple configuration files for different aspects of the
+application. Configuration can be:
+
+- Build-time: Maven POMs, resource filtering
+- Deployment-time: External properties files
+- Runtime: Database-stored properties
+
+Configuration Hierarchy:
+1. Default values (hardcoded or in bundled files)
+2. External configuration file (roller-custom.properties)
+3. Database stored properties (roller_properties table)
+4. Environment variables (Docker, cloud deployments)
+
+================================================================================
+2. ROLLER-CUSTOM.PROPERTIES (PRIMARY CONFIGURATION)
+================================================================================
+
+File: roller-custom.properties
+Location: External to WAR (various locations supported)
+Format: Java properties file (key=value pairs)
+
+Default Search Locations:
+1. Path specified by -Droller.custom.config system property
+2. /roller-custom.properties (filesystem root)
+3. ${user.home}/roller-custom.properties
+4. ${catalina.base}/roller-custom.properties (Tomcat)
+5. Classpath:/roller-custom.properties
+
+Configuration Categories:
+
+2.1 Database Configuration
+
+# JNDI DataSource (Recommended for Production)
+database.jndi.name=java:comp/env/jdbc/rollerdb
+
+# OR Direct JDBC Configuration (Development/Testing)
+database.jdbc.driverClass=com.mysql.cj.jdbc.Driver
+database.jdbc.connectionURL=jdbc:mysql://localhost:3306/roller
+database.jdbc.username=rolleruser
+database.jdbc.password=password
+
+# Database Provider
+database.provider=org.apache.roller.weblogger.business.jpa.JPADatabaseProvider
+
+2.2 File Storage Configuration
+
+# Media files directory
+mediafiles.storage.dir=/var/roller/mediafiles
+
+# Search index directory
+search.index.dir=/var/roller/searchindex
+
+# Uploaded file size limit (bytes, -1 for unlimited)
+uploads.maxsize=10485760
+
+# Allowed file extensions (comma-separated)
+uploads.allowed.extensions=.gif,.jpg,.jpeg,.png,.pdf,.txt
+
+2.3 Mail Configuration
+
+# Mail provider
+mail.configurationType=properties
+
+# SMTP settings
+mail.smtp.host=smtp.example.com
+mail.smtp.port=587
+mail.smtp.auth=true
+mail.smtp.username=user@example.com
+mail.smtp.password=mailpassword
+mail.smtp.starttls.enable=true
+
+# From address
+mail.from=noreply@example.com
+
+2.4 Site Configuration
+
+# Site short name (appears in emails, etc.)
+site.shortName=Roller
+
+# Site name
+site.name=My Roller Blog Site
+
+# Site description
+site.description=A blogging community powered by Apache Roller
+
+# Absolute URL to site
+site.absoluteurl=https://www.example.com/roller
+
+2.5 Security Configuration
+
+# Password encryption algorithm (SHA-512 recommended)
+passwds.encryption.algorithm=SHA-512
+
+# Enable self-registration
+users.registration.enabled=true
+
+# HTTPS required for login
+securelogin.enabled=false
+
+# Remember me cookie max age (seconds)
+rememberme.maxage=1209600
+
+2.6 Comment Configuration
+
+# Comment spam filter (enabled/disabled)
+comment.spam.filter.enabled=true
+
+# Comment authentication required
+comment.authenticator.enabled=false
+
+# Comment notification emails
+comment.notification.enabled=true
+
+2.7 Cache Configuration
+
+# Enable caching
+cache.enabled=true
+
+# Cache provider class
+cache.provider=com.opensymphony.oscache.web.WeblogCacheAdminFilter
+
+2.8 Planet Configuration (if using Planet feature)
+
+# Planet aggregator enabled
+planet.aggregator.enabled=false
+
+# Planet feed fetch interval (minutes)
+planet.aggregator.cache.time=180
+
+2.9 Misc Configuration
+
+# Locale (default language)
+locale.default=en_US
+
+# Timezone
+timezone.default=America/New_York
+
+# Enable HTTPS
+server.scheme=https
+
+# Frontend page URL (if different from absolute URL)
+# frontend.url=
+
+Example Complete Configuration File:
+```properties
+#==================================
+# Roller Custom Configuration
+#==================================
+
+# Database JNDI
+database.jndi.name=java:comp/env/jdbc/rollerdb
+
+# File Storage
+mediafiles.storage.dir=/var/roller/mediafiles
+search.index.dir=/var/roller/searchindex uploads.maxsize=10485760
+
+# Mail SMTP
+mail.configurationType=properties
+mail.smtp.host=smtp.gmail.com
+mail.smtp.port=587
+mail.smtp.auth=true
+mail.smtp.username=yourapp@gmail.com
+mail.smtp.password=yourpassword
+mail.smtp.starttls.enable=true
+mail.from=noreply@yourdomain.com
+
+# Site Info
+site.shortName=MyBlog
+site.name=My Blog Site
+site.absoluteurl=https://blog.example.com
+
+# Security
+passwds.encryption.algorithm=SHA-512
+users.registration.enabled=true
+
+# Comments
+comment.spam.filter.enabled=true
+comment.notification.enabled=true
+
+# Cache
+cache.enabled=true
+
+# Locale & Timezone
+locale.default=en_US
+timezone.default=America/New_York
+```
+
+================================================================================
+3. WEB APPLICATION DESCRIPTOR (WEB.XML)
+================================================================================
+
+File: web.xml
+Location: app/src/main/webapp/WEB-INF/web.xml
+Purpose: Servlet container configuration
+
+Key Elements:
+
+3.1 Context Parameters
+```xml
+<context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>/WEB-INF/security.xml</param-value>
+</context-param>
+```
+
+3.2 Filters
+- CharacterEncodingFilter: UTF-8 encoding
+- StrutsPrepareAndExecuteFilter: Struts2 front controller
+- Spring Security filters
+
+3.3 Listeners
+- ContextLoaderListener: Spring initialization
+- GuiceServletContextListener: Guice DI
+
+3.4 Servlets
+- Various servlets for specific functionalities
+
+3.5 Session Configuration
+```xml
+<session-config>
+    <session-timeout>30</session-timeout>
+</session-config>
+```
+
+3.6 Error Pages
+```xml
+<error-page>
+    <error-code>404</error-code>
+    <location>/roller-ui/errors/404.jsp</location>
+</error-page>
+```
+
+================================================================================
+4. JPA PERSISTENCE CONFIGURATION
+================================================================================
+
+File: persistence.xml
+Location: app/src/main/resources/META-INF/persistence.xml
+Purpose: JPA/ORM configuration
+
+Key Elements:
+
+```xml
+<persistence-unit name="RollerPU" transaction-type="RESOURCE_LOCAL">
+    <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+    
+    <!-- Entity Classes -->
+    <class>org.apache.roller.weblogger.pojos.User</class>
+    <class>org.apache.roller.weblogger.pojos.Weblog</class>
+    <!-- ... more entities ... -->
+    
+    <properties>
+        <!-- EclipseLink properties -->
+        <property name="eclipselink.logging.level" value="INFO"/>
+        <property name="eclipselink.ddl-generation" value="none"/>
+        
+        <!-- Connection pool -->
+        <property name="eclipselink.jdbc.min-connections" value="5"/>
+        <property name="eclipselink.jdbc.max-connections" value="20"/>
+        
+        <!-- Cache -->
+        <property name="eclipselink.cache.shared.default" value="false"/>
+    </properties>
+</persistence-unit>
+```
+
+================================================================================
+5. STRUTS2 CONFIGURATION
+================================================================================
+
+5.1 Struts.xml
+
+File: struts.xml
+Location: app/src/main/resources/struts.xml
+
+Structure:
+```xml
+<struts>
+    <constant name="struts.devMode" value="false"/>
+    <constant name="struts.i18n.encoding" value="UTF-8"/>
+    <constant name="struts.multipart.maxSize" value="10485760"/>
+    
+    <package name="roller-default" extends="struts-default">
+        <!-- Action mappings -->
+    </package>
+</struts>
+```
+
+5.2 Struts.properties
+
+File: struts.properties
+Location: app/src/main/resources/struts.properties
+
+Key Properties:
+```properties
+struts.devMode=false
+struts.i18n.encoding=UTF-8
+struts.multipart.maxSize=10485760
+struts.ui.theme=simple
+struts.enable.DynamicMethodInvocation=false
+```
+
+================================================================================
+6. LOGGING CONFIGURATION
+================================================================================
+
+File: log4j2.xml
+Location: app/src/main/resources/log4j2.xml
+
+Structure:
+```xml
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Console>
+        
+        <File name="File" fileName="/var/log/roller/roller.log">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n"/>
+        </File>
+    </Appenders>
+    
+    <Loggers>
+        <Logger name="org.apache.roller" level="info"/>
+        <Logger name="org.hibernate" level="warn"/>
+        <Logger name="org.springframework" level="warn"/>
+        
+        <Root level="error">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="File"/>
+        </Root>
+    </Loggers>
+</Configuration>
+```
+
+Log Levels:
+- TRACE: Very detailed debugging
+- DEBUG: Debugging information
+- INFO: Informational messages
+- WARN: Warning messages
+- ERROR: Error messages
+- FATAL: Fatal errors
+
+================================================================================
+7. SPRING SECURITY CONFIGURATION
+================================================================================
+
+File: security.xml (or equivalent Java config)
+Location: app/src/main/webapp/WEB-INF/security.xml
+
+Key Configurations:
+
+Authentication:
+- Form login
+- Remember-me
+- LDAP (optional)
+- OpenID (deprecated)
+
+Authorization:
+- URL-based security
+- Method security
+- Role hierarchy
+
+Security Settings:
+- CSRF protection
+- Session fixation protection
+- Secure headers
+
+================================================================================
+8. TOMCAT CONTEXT CONFIGURATION
+================================================================================
+
+File: context.xml or roller.xml
+Location: Tomcat conf/Catalina/localhost/roller.xml
+
+JNDI DataSource Configuration:
+```xml
+<Context>
+    <Resource name="jdbc/rollerdb"
+              auth="Container"
+              type="javax.sql.DataSource"
+              username="rolleruser"
+              password="password"
+              driverClassName="com.mysql.cj.jdbc.Driver"
+              url="jdbc:mysql://localhost:3306/roller?useUnicode=true&amp;characterEncoding=UTF-8"
+              maxTotal="50"
+              maxIdle="30"
+              maxWaitMillis="10000"
+              removeAbandonedOnBorrow="true"
+              removeAbandonedTimeout="60"
+              logAbandoned="true"
+              validationQuery="SELECT 1"/>
+              
+    <!-- Roller custom config location -->
+    <Parameter name="roller.custom.config" 
+               value="/etc/roller/roller-custom.properties"/>
+</Context>
+```
+
+================================================================================
+9. ENVIRONMENT VARIABLES (DOCKER/CLOUD)
+================================================================================
+
+Docker Environment Variables:
+```bash
+# Database
+ROLLER_DB_HOST=mysql
+ROLLER_DB_PORT=3306
+ROLLER_DB_NAME=roller
+ROLLER_DB_USER=roller
+ROLLER_DB_PASSWORD=password
+
+# Mail
+ROLLER_MAIL_HOST=smtp.example.com
+ROLLER_MAIL_PORT=587
+ROLLER_MAIL_USER=user@example.com
+ROLLER_MAIL_PASSWORD=password
+
+# Site
+ROLLER_SITE_URL=https://roller.example.com
+```
+
+Docker Compose Example:
+```yaml
+environment:
+  - ROLLER_DB_HOST=${DB_HOST:-mysql}
+  - ROLLER_MAIL_HOST=${MAIL_HOST}
+```
+
+================================================================================
+10. ROME RSS/ATOM CONFIGURATION
+================================================================================
+
+File: rome.properties
+Location: app/src/main/resources/rome.properties
+
+Feed Generation Settings:
+```properties
+# ROME library configuration
+rome.feed.limit=20
+```
+
+================================================================================
+11. BANNED WORDS LIST (SPAM FILTER)
+================================================================================
+
+File: bannedwordslist.txt
+Location: app/src/main/resources/bannedwordslist.txt
+
+Format: One word per line
+Purpose: Comment spam filtering
+
+Example:
+```
+viagra
+casino
+poker
+pharmacy
+(add spam keywords)
+```
+
+================================================================================
+12. APPLICATION RESOURCES (I18N)
+================================================================================
+
+Files: ApplicationResources*.properties
+Location: app/src/main/resources/
+
+Language Files:
+- ApplicationResources.properties (English)
+- ApplicationResources_de.properties (German)
+- ApplicationResources_es.properties (Spanish)
+- etc.
+
+Format:
+```properties
+key=Value
+
+# Example
+weblog.title=Blog Title
+entry.edit=Edit Entry
+comment.moderate=Moderate Comments
+```
+
+================================================================================
+13. DATABASE PROPERTIES FILES
+================================================================================
+
+Location: app/src/main/resources/sql/[database]/
+
+Files:
+- mysql.properties
+- postgresql.properties
+- derby.properties
+- etc.
+
+Purpose: Database-specific SQL syntax and settings
+
+Example (mysql.properties):
+```properties
+database.name=MySQL
+table.type=InnoDB
+boolean.true=true
+boolean.false=false
+text.type=TEXT
+varchar.type=VARCHAR
+# ... more DB-specific settings
+```
+
+================================================================================
+14. CONFIGURATION BEST PRACTICES
+================================================================================
+
+Security:
+- Never commit passwords to version control
+- Use environment variables for sensitive data
+- Encrypt passwords where possible
+- Restrict file permissions on config files
+
+Environment-Specific:
+- Development: Use embedded Derby, enable debug logging
+- Staging: Mirror production, test configurations
+- Production: External database, INFO logging, HTTPS required
+
+Externalization:
+- Keep roller-custom.properties outside WAR
+- Use JNDI for database connections
+- Environment variables for cloud deployments
+
+Validation:
+- Test configuration changes in non-production first
+- Validate syntax before deployment
+- Check logs for configuration errors
+
+## Verification Results
+- **Maven Compile**: PASSED ✅
+- **IndexManagerTest**: PASSED ✅
+- **SearchResultsModelTest**: PASSED ✅
+- **Circular Dependencies**: ELIMINATED 🚀
+
+### Key Fixes
+- **Guice Bootstrap**: Resolved circular dependency proxy issues by moving initialization of `OperationQueue` and `OperationFactory` to the `initialize()` method.
+- **Static Decoupling**: Refactored `IndexUtil` and `LuceneSearchQueryBuilder` to use dependency injection (passing `Analyzer`) instead of static calls to `LuceneIndexManager`, resolving multiple compilation errors and adhering to SOLID principles.
+
+================================================================================
+15. TROUBLESHOOTING CONFIGURATION ISSUES
+================================================================================
+
+Issue: roller-custom.properties Not Found
+Solution:
+- Check system property: -Droller.custom.config=/path/to/file
+- Verify file exists and is readable
+- Check Tomcat catalina.out for startup messages
+
+Issue: Database Connection Failures
+Solution:
+- Verify JDBC URL, username, password
+- Check database is running and accessible
+- Test with database client tool
+- Review JNDI configuration in Tomcat
+
+Issue: Mail Not Sending
+Solution:
+- Verify SMTP settings
+- Test SMTP connection separately
+- Check firewall rules
+- Review SMTP authentication settings
+
+Issue: File Uploads Not Working
+Solution:
+- Check file upload size limits
+- Verify mediafiles.storage.dir exists and is writable
+- Check file extension restrictions
+- Review disk space
+
+================================================================================
+END OF CONFIGURATION DOCUMENTATION
+Last Updated: January 2026
+================================================================================

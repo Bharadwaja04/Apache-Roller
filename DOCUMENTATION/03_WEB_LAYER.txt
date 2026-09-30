@@ -1,0 +1,762 @@
+================================================================================
+WEB LAYER AND UI DOCUMENTATION
+================================================================================
+
+Module: Apache Roller Web Layer
+Location: app/src/main/java/org/apache/roller/weblogger/ui
+Web Content: app/src/main/webapp
+
+================================================================================
+1. WEB LAYER OVERVIEW
+================================================================================
+
+The webUI layer provides the user interface and request handling for Apache
+Roller. It uses a Model-View-Controller (MVC) architecture implemented with
+Apache Struts2.
+
+Key Technologies:
+- Apache Struts 2.5.29: MVC framework
+- JSP (JavaServer Pages): Dynamic page generation
+- Apache Velocity: Template engine for blogs
+- jQuery 3.7.1: Client-side JavaScript
+- Bootstrap 3.4.1: CSS framework
+- Summernote 0.8.12: WYSIWYG editor
+- Struts2 Bootstrap Plugin: UI components
+
+Web Layer Components:
+1. Struts2 Actions: Handle HTTP requests
+2. JSP Pages: Administrative UI
+3. Velocity Templates: Blog themes
+4. JavaScript/CSS: Client-side resources
+5. Filters and Interceptors: Request processing
+
+================================================================================
+2. STRUTS2 CONFIGURATION
+================================================================================
+
+2.1 Main Configuration File
+
+File: app/src/main/resources/struts.xml
+
+Purpose:
+- Define action mappings
+- Configure interceptor stacks
+- Set result types
+- Define packages and namespaces
+
+Configuration Structure:
+- Package organization by feature area
+- Convention plugin for zero-configuration actions
+- Tiles plugin for layout management
+- Spring plugin for dependency injection integration
+
+2.2 Struts2 Properties
+
+File: app/src/main/resources/struts.properties
+
+Key Settings:
+- struts.devMode: Development mode (false in production)
+- struts.i18n.encoding: UTF-8 character encoding
+- struts.multipart.maxSize: File upload size limit
+- struts.ui.theme: UI theme (simple, xhtml, etc.)
+- struts.enable.DynamicMethodInvocation: false (security)
+
+2.3 Web Application Descriptor
+
+File: app/src/main/webapp/WEB-INF/web.xml
+
+Servlets:
+- Struts2 Filter: Front controller for all requests
+- org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter
+
+Filters:
+- Character Encoding Filter: UTF-8 encoding
+- Spring Security Filter Chain: Authentication/authorization
+- Compression Filter: GZIP compression (optional)
+- Cache Control Filter: Browser caching headers
+
+Listeners:
+- Spring Context Loader: Initializes Spring container
+- Guice ServletContext Listener: Dependency injection setup
+- Session Listener: User session management
+
+Error Pages:
+- 403: Forbidden
+- 404: Not Found
+- 500: Internal Server Error
+
+Session Configuration:
+- Timeout: 30 minutes (default)
+- Cookie-based session tracking
+
+==================================================================================
+3. STRUTS2 ACTIONS
+================================================================================
+
+3.1 Action Organization
+
+Location: app/src/main/java/org/apache/roller/weblogger/ui/struts2/
+
+Package Structure:
+- core/: Core administrative actions
+- editor/: Blog editing actions
+- admin/: System administration actions
+- user/: User profile and settings
+- common/: Shared actions and utilities
+
+Action Naming Convention:
+- *Action.java: Struts2 action classes
+- Example: WeblogEntryEditAction.java
+
+3.2 Common Action Patterns
+
+Base Action Classes:
+- UIAction: Base class for all actions
+- UISecureAction: Requires authentication
+- UIActionPreparable: Implements Preparable interface
+
+Request Lifecycle:
+1. Filter intercepts request
+2. Action.prepare() called (if Preparable)
+3. Interceptors execute (validation, authentication, etc.)
+4. Action.execute() or specific method invoked
+5. Result rendered (JSP, JSON, redirect, etc.)
+6. Response sent to client
+
+Action Methods:
+- execute(): Default action method
+- save(): Save/update operations
+- delete(): Delete operations
+- cancel(): Cancel and redirect
+
+Result Types:
+- success: Forward to JSP
+- input: Return to form (validation errors)
+- error: Error page
+ - json: JSON response (AJAX)
+- redirect: Client-side redirect
+- redirectAction: Redirect to another action
+
+3.3 Key Action Examples
+
+WeblogManagement Actions:
+- CreateWeblogAction: Create new blog
+- WeblogConfigAction: Configure blog settings
+- WeblogEntryManagement: List/manage entries
+
+Entry Editing Actions:
+- WeblogEntryEditAction: Create/edit blog posts
+- WeblogEntryRemoveAction: Delete blog posts
+- WeblogEntryPreviewAction: Preview before publishing
+
+Comment Management:
+- CommentManagementAction: Moderate comments
+- CommentApprovalAction: Approve/spam/delete
+
+Media Management:
+- MediaFileAddAction: Upload media files
+- MediaFileEditAction: Edit file metadata
+- MediaFileViewAction: Browse media library
+
+User Management:
+- UserAdminAction: Manage users (admin)
+- UserEditAction: Edit user profile
+- RegistrationAction: New user registration
+
+3.4 Action Annotations
+
+Common Struts2 Annotations:
+- @Action: Define action mapping
+- @Result: Define result mapping
+- @Namespace: Set action namespace
+- @InterceptorRefs: Apply interceptors
+- @Validations: Define validation rules
+
+Example:
+```java
+@Action(value = "entryEdit",
+        results = {
+            @Result(name="success", location="EntryEdit.jsp"),
+            @Result(name="input", location="EntryEdit.jsp"),
+            @Result(name="error", location="error.jsp")
+        })
+public String execute() {
+    // Action logic
+    return SUCCESS;
+}
+```
+
+================================================================================
+4. JSP PAGES
+================================================================================
+
+4.1 JSP Organization
+
+Location: app/src/main/webapp/
+
+JSP Structure:
+- index.jsp: Application landing page
+- /roller-ui/: Administrative interface pages
+- /roller-ui/errors/: Error pages
+- /WEB-INF/jsps/: Protected JSP includes
+
+4.2 Key JSP Pages
+
+Administrative UI (/roller-ui/):
+- index.jsp: Admin dashboard
+- login-redirect.jsp: Post-login redirect
+- logout-redirect.jsp: Post-logout redirect
+
+Error Pages (/roller-ui/errors/):
+- 403.jsp: Access denied
+- 404.jsp: Page not found
+- denied.jsp: Security denial
+- error.jsp: General error page
+
+4.3 JSP Tag Libraries
+
+Standard Tag Libraries:
+- JSTL Core: <c:*> - Control flow, iteration
+- JSTL Formatting: <fmt:*> - I18N, formatting
+- JSTL Functions: <fn:*> - String manipulation
+
+Struts2 Tags:
+File: WEB-INF/jsps/taglibs-struts2.jsp (included in all JSPs)
+
+- <s:form>: HTML forms
+- <s:textfield>: Input fields
+- <s:select>: Dropdown lists
+- <s:checkbox>: Checkboxes
+- <s:submit>: Submit buttons
+- <s:url>: URL generation
+- <s:property>: Property access
+- <s:iterator>: Collection iteration
+- <s:if>, <s:else>: Conditional rendering
+
+Spring Security Tags:
+- <sec:authorize>: Authorization checks
+- <sec:authentication>: Current user info
+
+Custom Tags (if any):
+- Roller-specific tag libraries
+- Located in WEB-INF/tags/ (if present)
+
+4.4 JSP Best Practices
+
+Separation of Concerns:
+- Business logic in Actions
+- Presentation logic in JSPs
+- Avoid scriptlets (<% %>)
+- Use tag libraries and EL
+
+Internationalization:
+- All text via <fmt:message>
+- Keys defined in ApplicationResources.properties
+- Support for multiple languages
+
+Security:
+- Escape all user input: <c:out>
+- CSRF tokens in forms
+- Authorization checks before sensitive operations
+
+================================================================================
+5. VELOCITY TEMPLATES (BLOG THEMES)
+================================================================================
+
+5.1 Template System Overview
+
+Location: app/src/main/webapp/themes/
+
+Purpose:
+- Render blog frontend (public-facing pages)
+- Customizable by blog owners
+- Template inheritance and includes
+
+Template Engine: Apache Velocity 2.4.1
+
+5.2 Standard Themes
+
+Built-in Themes:
+1. basic: Simple, clean blog theme
+2. basicmobile: Mobile-optimized version
+3. fauxcoly: Multi-column layout
+4. frontpage: Site frontpage theme
+5. gaurav: Alternative design theme
+
+Each Theme Contains:
+- weblog.vm: Main blog page
+- day.vm or _day.vm: Daily entries view
+- permalink.vm: Single entry permalink page
+- searchresults.vm: Search results page
+- entry.vm: Entry content template
+- sidebar.vm: Sidebar widgets
+- archives.vm: Archive listings
+- tags_index.vm: Tag cloud/index
+- *_css.vm or style_css.vm: CSS templates
+- custom_css.vm: User custom CSS
+- *_header.vm, *_footer.vm: Header/footer includes
+
+5.3 Velocity Template Language
+
+Velocity Syntax Elements:
+
+Variables:
+- $variableName: Output variable
+- $!variableName: Silent null handling
+- ${variableName}: Formal notation
+
+Directives:
+- #set($var = value): Variable assignment
+- #if($condition): Conditional
+- #foreach($item in $list): Iteration
+- #include("file"): File inclusion
+- #parse("file"): Parse Velocity file
+- #macro(name): Define macro
+
+Comments:
+- ## Single line comment
+- #* Multi-line comment *#
+
+Method Calls:
+- $object.method()
+- $object.property
+
+5.4 Velocity Context Objects
+
+Available in Templates:
+
+$model: Template model (main context object)
+- $model.weblog: Current blog
+- $model.entries: Blog entries list
+- $model.permalink: Permalink entry
+- $model.searchResults: Search results
+
+$url: URL generation object
+- $url.home: Home URL
+- $url.entry($entry): Entry URL
+- $url.tag($tag): Tag URL
+
+$text: I18N text object
+- $text.get("key"): Get localized text
+
+$utils: Utility object
+- $utils.formatDate($date): Format date
+- $utils.escapeHTML($text): HTML escaping
+
+$request: HTTP request object
+$session: HTTP session object
+
+5.5 Template Customization
+
+Theme Selection:
+- Admin UI: Settings → Theme
+- Choose from available themes
+- Preview before applying
+
+Custom CSS:
+- Edit custom_css.vm in theme
+- Add blog-specific styles
+- Overrides default theme CSS
+
+Template Override:
+- Copy theme template
+- Modify as needed
+- Save as custom theme
+
+================================================================================
+6. JAVASCRIPT AND CLIENT-SIDE RESOURCES
+================================================================================
+
+6.1 JavaScript Libraries
+
+WebJars Integration:
+- Location: /webjars/ (served via servlet)
+- Version management via Maven dependencies
+
+Key Libraries:
+- jQuery 3.7.1: DOM manipulation, AJAX
+- jQuery UI 1.14.1: UI widgets
+- Bootstrap 3.4.1: Responsive framework
+- AngularJS 1.7.8: (if used in admin UI)
+- Summernote 0.8.12: Rich text editor
+- clipboard.js 2.0.11: Copy to clipboard
+- jquery-validation 1.20.0: Form validation
+
+6.2 Custom JavaScript
+
+Location: app/src/main/webapp/roller-ui/scripts/ (if present)
+
+Common Patterns:
+- Form validation
+- AJAX requests for dynamic content
+- Rich text editor initialization
+- UI enhancements
+- Event handlers
+
+JavaScript Organization:
+- Modular code organization
+- Namespace usage to avoid conflicts
+- jQuery document ready patterns
+
+6.3 CSS Stylesheets
+
+CSS Framework: Bootstrap 3.4.1
+
+Custom Styles:
+- Location: /roller-ui/styles/ or /theme/styles/
+- Admin UI specific styles
+- Blog theme styles
+
+Responsive Design:
+- Mobile-first approach
+- Breakpoints for tablets and desktops
+- Media queries for different screen sizes
+
+CSS Preprocessing:
+- Not used by default (vanilla CSS)
+- Can be added via build process
+
+================================================================================
+7. INTERNATIONALIZATION (I18N)
+================================================================================
+
+7.1 Resource Bundles
+
+Location: app/src/main/resources/
+
+Files:
+- ApplicationResources.properties (default - English)
+- ApplicationResources_de.properties (German)
+- ApplicationResources_es.properties (Spanish)
+- ApplicationResources_fr.properties (French)
+- ApplicationResources_ja.properties (Japanese)
+- ApplicationResources_ko.properties (Korean)
+- ApplicationResources_ru.properties (Russian)
+- ApplicationResources_zh_CN.properties (Chinese)
+
+7.2 Message Keys
+
+Format: 
+key=value
+
+Example:
+```
+weblog.title=Blog Title
+entry.edit=Edit Entry
+comment.moderate=Moderate Comments
+```
+
+Usage in JSP:
+```jsp
+<fmt:message key="weblog.title"/>
+<s:text name="entry.edit"/>
+```
+
+Usage in Velocity:
+```velocity
+$text.get("comment.moderate")
+```
+
+7.3 Locale Selection
+
+Automatic Detection:
+- Browser Accept-Language header
+- User preference (if authenticated)
+
+Manual Selection:
+- User profile settings
+- URL parameter: ?locale=en_US
+
+Fallback Chain:
+1. User's selected locale
+2. Browser locale
+3. Default locale (English)
+
+================================================================================
+8. FILTERS AND INTERCEPTORS
+================================================================================
+
+8.1 Servlet Filters
+
+Defined in: web.xml
+
+Key Filters:
+1. Character Encoding Filter
+   - Sets UTF-8 encoding
+   - Applied to all requests
+
+2. Spring Security Filter Chain
+   - Authentication
+   - Authorization
+   - CSRF protection
+
+3. StrutsPrepareAndExecuteFilter
+   - Struts2 front controller
+   - Request routing
+
+4. Compression Filter (if configured)
+   - GZIP response compression
+   - Reduces bandwidth
+
+5. Cache Control Filter
+   - Sets caching headers
+   - Controls browser caching
+
+8.2 Struts2 Interceptors
+
+Common Interceptors:
+- params: Parameter binding
+- validation: Input validation
+- workflow: Workflow management
+- exception: Exception handling
+- prepare: Preparable interface support
+- modelDriven: Model-driven actions
+- fileUpload: File upload handling
+
+Custom Interceptors:
+- Authentication interceptor
+- Authorization interceptor
+- Logging interceptor
+
+Interceptor Stack:
+- defaultStack: Standard interceptor chain
+- Custom stacks for specific needs
+
+================================================================================
+9. AJAX AND REST ENDPOINTS
+================================================================================
+
+9.1 AJAX Support
+
+Struts2 JSON Plugin:
+- Returns JSON responses
+- Used for AJAX requests
+
+Common AJAX Operations:
+- Auto-save drafts
+- Live search
+- Comment submission
+- Dynamic content loading
+
+Response Format:
+```json
+{
+  "status": "success",
+  "data": {...},
+  "message": "Operation completed"
+}
+```
+
+9.2 REST-Style URLs
+
+URL Patterns:
+- /roller/entry/{entry-id}: Permalink
+- /roller/tag/{tag-name}: Tag archives
+- /roller/category/{category}: Category archives
+- /roller/date/{yyyy-mm-dd}: Date archives
+
+Clean URLs:
+- SEO-friendly
+- Configured via URL rewriting
+- No query parameters for main pages
+
+================================================================================
+10. FORMS AND VALIDATION
+================================================================================
+
+10.1 Form Handling
+
+Struts2 Forms:
+```jsp
+<s:form action="entryEdit" method="post">
+    <s:textfield name="entry.title" label="Title"/>
+    <s:textarea name="entry.text" label="Content"/>
+    <s:submit value="Save"/>
+</s:form>
+```
+
+CSRF Protection:
+- Tokens automatically added to forms
+- Validated on submission
+- Prevents cross-site request forgery
+
+10.2 Validation
+
+Validation Types:
+1. Client-side: JavaScript validation
+2. Server-side: Struts2 validation framework
+
+Validation Methods:
+- XML validation: *-validation.xml files
+- Annotation-based: @Validations annotations
+- Programmatic: validate() method in actions
+
+Validation Rules:
+- Required fields
+- String length
+- Email format
+- URL format
+- Date format
+- Numeric ranges
+
+Error Display:
+```jsp
+<s:fielderror/>
+<s:actionerror/>
+<s:actionmessage/>
+```
+
+================================================================================
+11. FILE UPLOADS
+================================================================================
+
+File Upload Configuration:
+
+Struts2 FileUpload Interceptor:
+- Max file size: Configured in struts.properties
+- Allowed file types: Configurable
+- Temporary file storage
+
+Upload Locations:
+- Media files: Configured upload directory
+- Temporary files: System temp directory
+
+MIME Type Validation:
+- Whitelist of allowed types
+- Image files: JPEG, PNG, GIF
+- Documents: PDF, DOC, etc.
+
+Security Considerations:
+- File size limits
+- File type validation
+- Virus scanning (external)
+- Unique file naming
+
+================================================================================
+12. SESSION MANAGEMENT
+================================================================================
+
+Session Configuration:
+
+Timeout: 30 minutes (default)
+Storage: Server-side (in-memory or database)
+Cookie Name: JSESSIONID
+
+Session Objects:
+- Authenticated user
+- Current weblog context
+- User preferences
+- Temporary data
+
+Session Listeners:
+- Track active sessions
+- Cleanup on session destruction
+- User activity logging
+
+Remember Me:
+- Persistent login token
+- Stored in cookie
+- Configurable expiration
+
+================================================================================
+13. SECURITY IN WEB LAYER
+================================================================================
+
+13.1 Spring Security Integration
+
+Configuration: WEB-INF/security.xml (or programmatic)
+
+Features:
+- Form-based login
+- Remember-me authentication
+- LDAP integration (optional)
+- OpenID integration (optional)
+- Custom authentication providers
+
+Authorization:
+- URL-based security
+- Method-level security
+- Role-based access control
+
+13.2 XSS Protection
+
+Output Escaping:
+- All user input escaped in views
+- <c:out> tag in JSP
+- Velocity auto-escaping
+
+HTML Sanitization:
+- Rich text editor content sanitized
+- Whitelist of allowed HTML tags
+- Remove dangerous attributes and scripts
+
+13.3 CSRF Protection
+
+Token Generation:
+- Unique token per session
+- Included in all forms
+- Validated on submission
+
+Double Submit Cookie:
+- Token in both form and cookie
+- Server validates match
+
+================================================================================
+14. ERROR HANDLING
+================================================================================
+
+Error Pages:
+- 403.jsp: Access forbidden
+- 404.jsp: Resource not found
+- 500.jsp: Internal server error
+- error.jsp: Generic error
+
+Exception Mapping:
+- Specific exceptions to error pages
+- Stack trace logging (dev mode)
+- User-friendly error messages
+
+Error Recovery:
+- Graceful degradation
+- Retry mechanisms
+- Fallback content
+
+================================================================================
+15. PERFORMANCE OPTIMIZATION
+================================================================================
+
+Caching:
+- Browser caching headers
+- Static resource caching
+- Fragment caching in templates
+
+Resource Optimization:
+- Minified JavaScript and CSS
+- Combined resources
+- GZIP compression
+
+Lazy Loading:
+- Images loaded on scroll
+- Pagination for large lists
+- AJAX for dynamic content
+
+CDN Integration:
+- Static resources from CDN
+- Geographic distribution
+- Reduced server load
+
+================================================================================
+16. RELATED DOCUMENTATION
+================================================================================
+
+See also:
+- 00_PROJECT_OVERVIEW.txt: Project overview
+- 01_APP_MODULE.txt: Application module
+- 04_BUSINESS_LAYER.txt: Business logic
+- 05_TEMPLATES.txt: Velocity templates detail
+- 06_CONFIGURATION.txt: Configuration files
+
+================================================================================
+END OF WEB LAYER AND UI DOCUMENTATION
+Last Updated: January 2026
+================================================================================

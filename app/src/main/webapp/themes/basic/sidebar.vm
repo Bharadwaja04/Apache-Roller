@@ -1,0 +1,47 @@
+## sidebar contents
+    <!-- sidebar -->
+    <h2>Calendar</h2>
+    <div class="sidebar">
+    #showWeblogEntryCalendar($model.weblog "nil")
+    </div>
+
+    <h2>Feeds</h2>
+    <div class="sidebar">
+    #showAtomFeedsList($model.weblog)
+    </div>
+
+    <h2>Search</h2>
+    <div class="sidebar">
+    #showWeblogSearchForm($model.weblog false)
+    </div>
+
+    <h2>Links</h2>
+    <div class="sidebar">
+    #set($defaultFolder = $model.weblog.getBookmarkFolder("/"))
+    #showBookmarkLinksList($defaultFolder)
+    </div>
+
+    <h2>Trending Blogs</h2>
+    <div class="sidebar">
+    #set($trendingBlogs = $site.getTrendingWeblogEntries(5))
+    #if($trendingBlogs && $trendingBlogs.size() > 0)
+        <ul>
+        #foreach($trendingEntry in $trendingBlogs)
+            <li class="trending-entry">
+                <a href="$trendingEntry.entry.permalink">$trendingEntry.entry.title</a>
+                <span style="display:block; font-size:12px; color:#888;">
+                    ★ $trendingEntry.likes Likes
+                </span>
+            </li>
+        #end
+        </ul>
+    #else
+        <p>No trending blogs found.</p>
+    #end
+    </div>
+
+    <h2>Navigation</h2>
+    <div class="sidebar">
+    #showPageMenu($model.weblog)
+    #showAuthorMenu(true)
+    </div>

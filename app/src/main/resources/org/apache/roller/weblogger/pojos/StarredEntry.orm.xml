@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings version="2.0" xmlns="http://java.sun.com/xml/ns/persistence/orm"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm http://java.sun.com/xml/ns/persistence/orm_2_0.xsd">
+    <package>org.apache.roller.weblogger.pojos</package>
+    <entity metadata-complete="true" name="StarredEntry" class="org.apache.roller.weblogger.pojos.StarredEntry"
+            access="PROPERTY">
+        <table name="roller_starred_entry"/>
+        <named-query name="StarredEntry.getByUser&amp;Entry">
+            <query>SELECT s FROM StarredEntry s WHERE s.user = ?1 AND s.entry = ?2</query>
+        </named-query>
+        <named-query name="StarredEntry.getStarredEntriesByUser">
+            <query>SELECT s.entry FROM StarredEntry s WHERE s.user = ?1 ORDER BY s.dateStarred DESC</query>
+        </named-query>
+        <named-query name="StarredEntry.removeByUser">
+            <query>DELETE FROM StarredEntry s WHERE s.user = ?1</query>
+        </named-query>
+        <named-query name="StarredEntry.removeByEntry">
+            <query>DELETE FROM StarredEntry s WHERE s.entry = ?1</query>
+        </named-query>
+        <named-query name="StarredEntry.getCountStarredEntriesByUser">
+            <query>SELECT COUNT(s) FROM StarredEntry s WHERE s.user = ?1</query>
+        </named-query>
+        <named-query name="StarredEntry.getCountByEntry">
+            <query>SELECT COUNT(s) FROM StarredEntry s WHERE s.entry = ?1</query>
+        </named-query>
+        <named-query name="StarredEntry.getTotalCount">
+            <query>SELECT COUNT(s) FROM StarredEntry s</query>
+        </named-query>
+        <named-query name="StarredEntry.getMostStarredEntryId">
+            <query>SELECT s.entry.id FROM StarredEntry s GROUP BY s.entry.id ORDER BY COUNT(s) DESC</query>
+        </named-query>
+        <named-query name="StarredEntry.getTrendingEntries">
+            <query>SELECT s.entry.id, COUNT(s) FROM StarredEntry s WHERE s.entry.status = org.apache.roller.weblogger.pojos.WeblogEntry.PubStatus.PUBLISHED GROUP BY s.entry.id ORDER BY COUNT(s) DESC</query>
+        </named-query>
+        <named-query name="StarredEntry.getCategoryLikeCounts">
+            <query>SELECT s.entry.category.name, COUNT(s) FROM StarredEntry s GROUP BY s.entry.category.name</query>
+        </named-query>
+        <attributes>
+            <id name="id">
+                <column name="id"/>
+            </id>
+            <basic name="dateStarred">
+                <column name="datestarred" insertable="true" updatable="true" unique="false"/>
+                <temporal>TIMESTAMP</temporal>
+            </basic>
+            <many-to-one name="user" target-entity="org.apache.roller.weblogger.pojos.User">
+                <join-column name="userid" insertable="true" updatable="true" nullable="false"/>
+            </many-to-one>
+            <many-to-one name="entry" target-entity="org.apache.roller.weblogger.pojos.WeblogEntry">
+                <join-column name="entryid" insertable="true" updatable="true" nullable="false"/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

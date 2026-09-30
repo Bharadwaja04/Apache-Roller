@@ -1,0 +1,468 @@
+================================================================================
+MASTER DOCUMENTATION INDEX
+================================================================================
+
+Apache Roller Version 6.1.5
+Complete Documentation Package
+Generated: January 2026
+
+================================================================================
+DOCUMENTATION OVERVIEW
+================================================================================
+
+This documentation package provides comprehensive coverage of the Apache Roller
+project, including architecture, code organization, configuration, deployment,
+and development guidelines.
+
+Target Audience:
+- Developers working with Roller codebase
+- System administrators deploying Roller
+- Contributors and maintainers
+- Students learning enterprise Java applications
+
+================================================================================
+DOCUMENTATION FILES
+================================================================================
+
+00_PROJECT_OVERVIEW.txt              [Foundation]
+├─ Purpose: High-level project overview
+├─ Topics:
+│  ├─ Project description and features
+│  ├─ Technology stack
+│  ├─ Module structure
+│  ├─ Build system (Maven)
+│  ├─ Deployment options
+│  ├─ Versioning and releases
+│  └─ Community and support
+└─ Start here for: Understanding what Roller is and how it's organized
+
+01_APP_MODULE.txt                    [Application Core]
+├─ Purpose: Main application module documentation
+├─ Topics:
+│  ├─ Module structure and organization
+│  ├─ Source code layout
+│  ├─ Resource files and configuration
+│  ├─ Web application content
+│  ├─ Build configuration and dependencies
+│  ├─ Development guidelines
+│  └─ Deployment artifacts
+└─ Start here for: Deep dive into application structure
+
+02_DATABASE.txt                      [Data Layer]
+├─ Purpose: Database and persistence documentation
+├─ Topics:
+│  ├─ Supported databases (7 RDBMS systems)
+│  ├─ Database schema and tables
+│  ├─ SQL scripts and migrations
+│  ├─ ORM configuration (JPA/EclipseLink)
+│  ├─ Database initialization
+│  ├─ Migration procedures
+│  ├─ Performance optimization
+│  ├─ Backup and recovery
+│  ├─ Security and monitoring
+│  └─ Troubleshooting
+└─ Start here for: Database setup, schema understanding, or data issues
+
+03_WEB_LAYER.txt                     [Presentation Layer]
+├─ Purpose: Web layer and UI documentation
+├─ Topics:
+│  ├─ Struts2 framework configuration
+│  ├─ Action classes and controllers
+│  ├─ JSP pages and tag libraries
+│  ├─ Velocity templates (blog themes)
+│  ├─ JavaScript and front-end resources
+│  ├─ Internationalization (I18N)
+│  ├─ Filters and interceptors
+│  ├─ Forms and validation
+│  ├─ File uploads
+│  ├─ Session management
+│  ├─ Security (XSS, CSRF)
+│  └─ Performance optimization
+└─ Start here for: UI development, theme customization, or frontend work
+
+04_FOLDER_STRUCTURE.txt              [Organization]
+├─ Purpose: Complete directory structure reference
+├─ Topics:
+│  ├─ Root directory layout
+│  ├─ App module directory tree
+│  ├─ All module structures
+│  ├─ Configuration file locations
+│  ├─ Build output directories
+│  ├─ Deployment package structure
+│  ├─ Development environment setup
+│  └─ Git repository organization
+└─ Start here for: Finding files, understanding project layout
+
+05_BUSINESS_LAYER.txt                [Business Logic]
+├─ Purpose: Business services and logic documentation
+├─ Topics:
+│  ├─ Manager pattern and interfaces
+│  ├─ Core business services
+│  ├─ Data access layer (JPA)
+│  ├─ Domain objects (POJOs)
+│  ├─ Provider pattern
+│  ├─ URL strategy
+│  ├─ Business rules and validation
+│  ├─ Caching strategy
+│  ├─ Asynchronous processing
+│  ├─ Error handling
+│  └─ Integration points
+└─ Start here for: Business logic, services, or data model
+
+06_CONFIGURATION.txt                 [Configuration]
+├─ Purpose: Configuration files and properties reference
+├─ Topics:
+│  ├─ roller-custom.properties
+│  ├─ Database configuration
+│  ├─ JPA/Hibernate configuration
+│  ├─ Struts2 configuration
+│  ├─ Spring Security configuration
+│  ├─ Logging configuration
+│  ├─ Web application configuration
+│  ├─ Environment-specific settings
+│  └─ Property reference guide
+└─ Start here for: Configuration changes or property lookup
+
+07_DEPLOYMENT.txt                    [Deployment]
+├─ Purpose: Deployment procedures and guidelines
+├─ Topics:
+│  ├─ Prerequisites and requirements
+│  ├─ Tomcat deployment
+│  ├─ Other application servers
+│  ├─ Database setup
+│  ├─ Configuration for production
+│  ├─ Post-deployment steps
+│  ├─ Upgrade procedures
+│  ├─ Clustering and load balancing
+│  ├─ Monitoring and maintenance
+│  └─ Troubleshooting deployment issues
+└─ Start here for: Production deployment or upgrades
+
+08_DOCKER.txt                        [Containerization]
+├─ Purpose: Docker and containerization documentation
+├─ Topics:
+│  ├─ Dockerfile explanation
+│  ├─ Docker Compose setup
+│  ├─ Container configuration
+│  ├─ Volume mapping
+│  ├─ Environment variables
+│  ├─ Database container
+│  ├─ Development vs production
+│  └─ Docker troubleshooting
+└─ Start here for: Docker deployment or containerized development
+
+09_MASTER_INDEX.txt                  [This File]
+├─ Purpose: Documentation navigation and index
+├─ Topics:
+│  ├─ Documentation overview
+│  ├─ File descriptions
+│  ├─ Quick reference guides
+│  ├─ Common tasks index
+│  └─ Additional resources
+└─ Start here for: Finding the right documentation file
+
+================================================================================
+QUICK REFERENCE GUIDE
+================================================================================
+
+COMMON TASKS AND RELEVANT DOCUMENTATION
+
+Development Setup:
+→ 00_PROJECT_OVERVIEW.txt (Section 9: Development Workflow)
+→ 04_FOLDER_STRUCTURE.txt (Section: Development Environment Setup)
+→ 01_APP_MODULE.txt (Section 9: Development Guidelines)
+
+Building the Project:
+→ 00_PROJECT_OVERVIEW.txt (Section 5: Build System)
+→ 01_APP_MODULE.txt (Section 7: Build Configuration)
+
+Database Configuration:
+→ 02_DATABASE.txt (Section 5: Database Initialization)
+→ 06_CONFIGURATION.txt (Database section)
+
+Creating a Blog Theme:
+→ 03_WEB_LAYER.txt (Section 5: Velocity Templates)
+→ 05_TEMPLATES.txt (if exists)
+
+Deploying to Production:
+→ 07_DEPLOYMENT.txt (All sections)
+→ 00_PROJECT_OVERVIEW.txt (Section 6: Deployment Options)
+→ 02_DATABASE.txt (Section 10: Performance Optimization)
+
+Using Docker:
+→ 08_DOCKER.txt (All sections)
+→ 00_PROJECT_OVERVIEW.txt (Section 6.2: Docker Deployment)
+
+Understanding Business Logic:
+→ 05_BUSINESS_LAYER.txt (Section 2: Manager Pattern)
+→ 05_BUSINESS_LAYER.txt (Section 4: Domain Objects)
+
+Modifying UI:
+→ 03_WEB_LAYER.txt (Section: Struts2 Actions, JSP Pages)
+→ 01_APP_MODULE.txt (Section 6: Web Application Content)
+
+Database Migration:
+→ 02_DATABASE.txt (Section 6: Database Migrations)
+→ 07_DEPLOYMENT.txt (Upgrade procedures)
+
+Troubleshooting:
+→ 02_DATABASE.txt (Section 14: Troubleshooting)
+→ 07_DEPLOYMENT.txt (Troubleshooting section)
+→ 01_APP_MODULE.txt (Section 15: Troubleshooting)
+
+Adding New Features:
+→ 05_BUSINESS_LAYER.txt (Manager pattern, business rules)
+→ 03_WEB_LAYER.txt (Actions, views)
+→ 02_DATABASE.txt (Schema modifications)
+
+================================================================================
+DOCUMENTATION STANDARDS
+================================================================================
+
+Format: Plain text (.txt files)
+Line Width: 80 characters maximum
+Encoding: UTF-8
+Structure: Hierarchical sections with numbered headers
+Cross-References: "See also:" sections in each document
+
+Section Numbering:
+1. Main sections
+1.1 Sub-sections
+1.1.1 Detailed sub-sections
+
+Code Examples:
+- Enclosed in ``` markers (for readability)
+- Syntax indicated (java, xml, sql, properties, etc.)
+- Real examples from the codebase where possible
+
+================================================================================
+TECHNOLOGY REFERENCE
+================================================================================
+
+Core Technologies:
+- Java 11+
+- Apache Maven 3.x
+- Servlet API 4.0.1
+- JPA 2.x
+
+Frameworks:
+- Apache Struts2 2.5.29
+- Spring Security 5.8.14
+- Spring Framework 5.3.39
+- Google Guice 7.0.0
+
+Templating:
+- Apache Velocity 2.4.1
+- JSP 2.2 / JSTL 1.2
+
+ORM:
+- EclipseLink 4.0.5 (default)
+- Hibernate 4.x (alternative)
+
+Search:
+- Apache Lucene 9.12.1
+
+Logging:
+- SLF4J 2.0.16
+- Log4j 2 2.24.3
+
+Front-end:
+- jQuery 3.7.1
+- Bootstrap 3.4.1
+- Summernote 0.8.12
+
+Feeds:
+- ROME 1.19.0
+
+Databases Supported:
+- MySQL 5.7+, 8.0+
+- PostgreSQL 10+, 12+, 14+
+- Apache Derby 10.11.1.1+ (development)
+- Oracle 11g+, 12c+, 19c
+- IBM DB2 10.5+
+- Microsoft SQL Server 2012+, 2016+, 2019+
+- HSQLDB 2.x
+
+================================================================================
+KEY CONCEPTS INDEX
+================================================================================
+
+Architecture Patterns:
+- Model-View-Controller (MVC) → 03_WEB_LAYER.txt
+- Manager Pattern → 05_BUSINESS_LAYER.txt (Section 2)
+- Provider Pattern → 05_BUSINESS_LAYER.txt (Section 5)
+- URL Strategy Pattern → 05_BUSINESS_LAYER.txt (Section 6)
+- Dependency Injection → 01_APP_MODULE.txt, 05_BUSINESS_LAYER.txt
+
+Build System:
+- Maven Multi-Module → 00_PROJECT_OVERVIEW.txt (Section 3, 5)
+- POM Configuration → 01_APP_MODULE.txt (Section 7)
+- Dependency Management → 01_APP_MODULE.txt (Section 8)
+
+Database:
+- Schema Design → 02_DATABASE.txt (Section 3)
+- JPA Entities → 02_DATABASE.txt (Section 9), 05_BUSINESS_LAYER.txt (Section 4)
+- Migrations → 02_DATABASE.txt (Section 6)
+- ORM Configuration → 02_DATABASE.txt (Section 9)
+
+Web Layer:
+- Struts2 Actions → 03_WEB_LAYER.txt (Section 3)
+- JSP Pages → 03_WEB_LAYER.txt (Section 4)
+- Velocity Templates → 03_WEB_LAYER.txt (Section 5)
+- Interceptors → 03_WEB_LAYER.txt (Section 8)
+
+Security:
+- Authentication → 03_WEB_LAYER.txt (Section 13.1)
+- Authorization → 05_BUSINESS_LAYER.txt (Section 7.2)
+- XSS Protection → 03_WEB_LAYER.txt (Section 13.2)
+- CSRF Protection → 03_WEB_LAYER.txt (Section 13.3)
+- SQL Injection Prevention → 02_DATABASE.txt (Section 12.3)
+
+Performance:
+- Caching → 05_BUSINESS_LAYER.txt (Section 8), 03_WEB_LAYER.txt (Section 15)
+- Database Optimization → 02_DATABASE.txt (Section 10)
+- Query Optimization → 05_BUSINESS_LAYER.txt (Section 12)
+- Connection Pooling → 02_DATABASE.txt (Section 10.2)
+
+================================================================================
+CODE LOCATIONS QUICK REFERENCE
+================================================================================
+
+Java Source Code:
+Main Application:    app/src/main/java/org/apache/roller/
+Tests:              app/src/test/java/org/apache/roller/
+
+Business Layer:
+Managers:           .../weblogger/business/*Manager.java
+POJOs:              .../weblogger/pojos/*.java
+Providers:          .../weblogger/business/*Provider.java
+
+Web Layer:
+Actions:            .../weblogger/ui/struts2/**/*Action.java
+JSPs:               app/src/main/webapp/roller-ui/**/*.jsp
+Velocity Templates: app/src/main/webapp/themes/*/*.vm
+
+Configuration:
+Application Config: app/src/main/resources/*.properties
+JPA Config:         app/src/main/resources/META-INF/persistence.xml
+Struts Config:      app/src/main/resources/struts.xml
+Web Descriptor:     app/src/main/webapp/WEB-INF/web.xml
+Logging Config:     app/src/main/resources/log4j2.xml
+
+Database:
+SQL Scripts:        app/src/main/resources/sql/
+Migration Scripts:  app/src/main/resources/sql/*-migration.vm
+DB Properties:      app/src/main/resources/sql/*/[database].properties
+
+Build Configuration:
+Parent POM:         pom.xml
+App POM:            app/pom.xml
+Docker:             Dockerfile, docker-compose.yml
+
+================================================================================
+EXTERNAL RESOURCES
+================================================================================
+
+Official Resources:
+- Apache Roller Website: http://roller.apache.org
+- GitHub Repository: https://github.com/apache/roller
+- Confluence Wiki: https://cwiki.apache.org/confluence (search "Roller")
+- Mailing Lists: Available through Apache Roller project page
+
+Documentation in Repository:
+- README.md: Quick start guide
+- docs/roller-install-guide.adoc: Installation guide
+- docs/roller-user-guide.adoc: User guide
+- docs/roller-template-guide.adoc: Template customization guide
+- CONTRIBUTING.md: Contribution guidelines
+
+Framework Documentation:
+- Apache Struts2: https://struts.apache.org/
+- Spring Security: https://spring.io/projects/spring-security
+- Apache Velocity: https://velocity.apache.org/
+- EclipseLink: https://www.eclipse.org/eclipselink/
+- Apache Lucene: https://lucene.apache.org/
+
+Database Documentation:
+- MySQL: https://dev.mysql.com/doc/
+- PostgreSQL: https://www.postgresql.org/docs/
+- Oracle: https://docs.oracle.com/database/
+- Others: See respective vendor documentation
+
+================================================================================
+DOCUMENTATION MAINTENANCE
+================================================================================
+
+Version: 1.0
+Last Updated: January 2026
+Roller Version: 6.1.5
+
+Update Process:
+- Documentation should be updated with each major release
+- Critical changes require immediate documentation updates
+- Minor clarifications can be batched
+
+Contributing to Documentation:
+- Follow the same format as existing files
+- Maintain 80-character line width
+- Include practical examples
+- Cross-reference related documents
+- Test all code examples
+
+Reporting Issues:
+- Documentation errors or omissions
+- Outdated information
+- Missing topics
+- Unclear explanations
+→ Submit issues via GitHub or mailing list
+
+================================================================================
+GETTING HELP
+================================================================================
+
+Documentation Issues:
+1. Check this index for the relevant documentation file
+2. Review the specific section
+3. Check external resources
+4. Search the wiki and mailing list archives
+
+Still Need Help?
+- Community mailing lists (see Apache Roller site)
+- GitHub issues (for bugs and features)
+- Stack Overflow (tag: apache-roller)
+- Confluence wiki (search existing content)
+
+================================================================================
+REVISION HISTORY
+================================================================================
+
+Version 1.0 - January 2026
+- Initial comprehensive documentation package
+- All core modules documented
+- Industry-standard format
+- Complete cross-referencing
+
+Future Planned Updates:
+- API reference documentation
+- Plugin development guide
+- Advanced customization guide
+- Performance tuning guide
+- Security hardening guide
+
+================================================================================
+LICENSE AND COPYRIGHT
+================================================================================
+
+This documentation is part of the Apache Roller project.
+
+Copyright: The Apache Software Foundation
+License: Apache License 2.0
+
+This documentation may be freely used, modified, and distributed under the
+terms of the Apache License 2.0. See LICENSE.txt in the project root for the
+full license text.
+
+================================================================================
+END OF MASTER INDEX
+Last Updated: January 2026
+================================================================================

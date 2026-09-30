@@ -1,0 +1,698 @@
+================================================================================
+DATABASE DOCUMENTATION
+================================================================================
+
+Module: Apache Roller Database Layer
+Location: app/src/main/resources/sql
+Module: db-utils (database utilities)
+
+================================================================================
+1. DATABASE OVERVIEW
+================================================================================
+
+Apache Roller uses a relational database to store all application data including
+user accounts, blog entries, comments, categories, media files metadata, and
+system configuration.
+
+Database Layer Technology:
+- JPA (Java Persistence API) 2.x
+- EclipseLink 4.0.5 (default ORM provider)
+- Alternative: Hibernate (commented out, LGPL licensed)
+- JDBC drivers for multiple databases
+
+Persistence Configuration:
+- Location: app/src/main/resources/META-INF/persistence.xml
+- Unit Name: RollerPU
+- Transaction Type: Resource-local or JTA  
+- Validation Mode: Auto schema validation
+
+================================================================================
+2. SUPPORTED DATABASES
+================================================================================
+
+Apache Roller supports the following database systems:
+
+1. Apache Derby
+   - Version: 10.11.1.1+
+   - Type: Embedded Java database
+   - Use Case: Development and testing only
+   - Driver: org.apache.derby.jdbc.EmbeddedDriver
+
+2. MySQL
+   - Recommended Version: 5.7+, 8.0+
+   - Driver: com.mysql.jdbc.Driver or com.mysql.cj.jdbc.Driver
+   - Use Case: Production (most common)
+   - Character Set: UTF-8
+   - Collation: utf8_general_ci or utf8mb4_unicode_ci
+
+3. PostgreSQL
+   - Recommended Version: 10+, 12+, 14+
+   - Driver: org.postgresql.Driver
+   - Use Case: Production
+   - Schema: public (default) or custom
+
+4. Oracle Database
+   - Supported Versions: 11g, 12c, 19c
+   - Driver: oracle.jdbc.OracleDriver
+   - Use Case: Enterprise deployments
+
+5. IBM DB2
+   - Supported Versions: 10.5+
+   - Driver: com.ibm.db2.jcc.DB2Driver
+   - Use Case: Enterprise deployments
+
+6. Microsoft SQL Server
+   - Supported Versions: 2012+, 2016+, 2019+
+   - Driver: com.microsoft.sqlserver.jdbc.SQLServerDriver
+   - Use Case: Windows enterprise environments
+
+7. HSQLDB (HyperSQL)
+   - Version: 2.x+
+   - Type: Lightweight in-memory/file database
+   - Use Case: Testing and development
+
+================================================================================
+3. DATABASE SCHEMA
+================================================================================
+
+The Roller database schema is organized into the following main entity groups:
+
+3.1 User and Security Tables
+   - roller_user: User account information
+   - roller_user_role: User roles (admin, user, etc.)
+   - roller_oauth_consumer: OAuth consumer registrations
+   - roller_oauth_accessor: OAuth access tokens
+
+3.2 Weblog (Blog) Tables
+   - weblog: Blog configuration and metadata
+   - weblog_entry: Blog posts/articles
+   - weblog_entry_comment: Comments on blog entries
+   - weblog_entry_tag: Tags associated with entries
+   - weblog_category: Blog entry categories
+
+3.3 Media Management Tables
+   - weblog_media_directory: Media file directories
+   - weblog_media_file: Uploaded media files metadata
+   - weblog_entry_media_file: Association between entries and media
+
+3.4 Template and Theme Tables
+   - weblog_theme: Custom blog themes
+   - weblog_template: Page templates (Velocity)
+   - custom_template: User-customized templates
+
+3.5 Bookmark Tables
+   - bookmark: Blogroll bookmarks
+   - bookmark_folder: Bookmark organization
+
+3.6 Planet Tables (Blog Aggregation)
+   - planet: Planet aggregator instance
+   - planet_group: Planet groups
+   - planet_subscription: Subscribed blogs
+   - planet_entry: Aggregated blog entries
+
+3.7 Configuration Tables
+   - roller_properties: System configuration key-value pairs
+   - roller_permission: Access control permissions
+   - hit_count: Page hit counters
+   - roller_task_lock: Distributed task locking
+
+3.8 Indexing Tables
+   - roller_index_operations: Search index management
+
+================================================================================
+4. DATABASE SCRIPTS
+================================================================================
+
+Location: app/src/main/resources/sql/
+
+4.1 Script Organization
+
+The database scripts use Apache Velocity templates to generate database-specific
+SQL scripts dynamically at build time.
+
+Main Templates:
+- control.vm: Main control template
+- createdb.vm: Table creation statements
+- macros.vm: Reusable SQL macros
+- droptables.sql: Drop all Roller tables
+
+Migration Templates:
+- 310-to-400-migration.vm: Upgrade from 3.1.0 to 4.0.0
+- 400-to-500-migration.vm: Upgrade from 4.0.0 to 5.0.0
+- 500-to-510-migration.vm: Upgrade from 5.0.0 to 5.1.0
+- 510-to-520-migration.vm: Upgrade from 5.1.0 to 5.2.0
+- 520-to-610-migration.vm: Upgrade from 5.2.0 to 6.1.0
+
+4.2 Database-Specific Folders
+
+Each database has its own directory containing:
+- *.properties: Database-specific SQL syntax and constraints
+- Generated SQL files (at build time)
+
+Database Directories:
+- sql/db2/: IBM DB2 scripts
+- sql/derby/: Apache Derby scripts
+- sql/hsqldb/: HSQLDB scripts
+- sql/mssql/: Microsoft SQL Server scripts
+- sql/mysql/: MySQL scripts
+- sql/oracle/: Oracle Database scripts
+- sql/postgresql/: PostgreSQL scripts
+
+4.3 Build-Time Script Generation
+
+Maven Build Process:
+1. maven-antrun-plugin executes during generate-resources phase
+2. Velocity Texen task processes *.vm templates
+3. Database-specific SQL scripts generated in target/classes/dbscripts/
+4. Scripts packaged in roller.war for runtime use
+
+Control Properties:
+- File: dbscripts.properties
+- Defines: List of databases, common properties
+- Used by: Velocity templates for SQL generation
+
+================================================================================
+5. DATABASE INITIALIZATION
+================================================================================
+
+5.1 Fresh Installation
+
+When Roller runs for the first time:
+1. Application starts and checks for existing database schema
+2. If no tables found, displays installation wizard
+3. User provides database connection details
+4. Installer runs createdb.vm-generated scripts
+5. Default data inserted (admin user, default configuration)
+6. Application ready for use
+
+5.2 Database Connection Configuration
+
+Configuration File: roller-custom.properties
+Location: External to WAR file (varies by deployment)
+
+Key Properties:
+- database.jndi.name: JNDI datasource name (recommended)
+OR
+- database.jdbc.driverClass: JDBC driver class
+- database.jdbc.connectionURL: Database connection URL
+- database.jdbc.username: Database username
+- database.jdbc.password: Database password (encrypted recommended)
+
+Example MySQL Configuration:
+database.jdbc.driverClass=com.mysql.cj.jdbc.Driver
+database.jdbc.connectionURL=jdbc:mysql://localhost:3306/roller?useUnicode=true&characterEncoding=UTF-8
+database.jdbc.username=rolleruser
+database.jdbc.password=password
+
+Example PostgreSQL Configuration:
+database.jdbc.driverClass=org.postgresql.Driver
+database.jdbc.connectionURL=jdbc:postgresql://localhost:5432/roller
+database.jdbc.username=rolleruser
+database.jdbc.password=password
+
+JNDI Configuration (Recommended for Production):
+database.jndi.name=java:comp/env/jdbc/rollerdb
+
+================================================================================
+6. DATABASE MIGRATIONS
+================================================================================
+
+6.1 Upgrade Process
+
+When upgrading Roller to a new version:
+1. Backup existing database (CRITICAL!)
+2. Stop Roller application
+3. Deploy new WAR file
+4. Start application
+5. Roller detects version mismatch
+6. Displays upgrade wizard
+7. User confirms upgrade
+8. Migration scripts executed automatically
+9. Database schema updated
+10. Application restarts with new version
+
+6.2 Migration Script Architecture
+
+Each migration script:
+- Detects current schema version
+- Applies incremental changes
+- Updates version number in database
+- Preserves existing data
+- Handles database-specific syntax via Velocity
+
+Version Detection:
+- Table: roller_properties
+- Key: database.version
+- Value: Current version number (e.g., "510", "610")
+
+6.3 Manual Migration
+
+For advanced users or troubleshooting:
+1. Locate migration scripts in roller.war
+2. Path: WEB-INF/classes/dbscripts/<database-type>/
+3. Execute scripts manually in order
+4. Update database.version property
+5. Restart application
+
+================================================================================
+7. DATA MODEL OVERVIEW
+================================================================================
+
+7.1 Key Entities and Relationships
+
+User → Weblog (1:N)
+- One user can own multiple blogs
+- Each blog has one owner
+- Additional users can have permissions
+
+Weblog → WeblogEntry (1:N)
+- One blog contains multiple entries
+- Each entry belongs to one blog
+- Entries can be published or draft
+
+WeblogEntry → Comment (1:N)
+- One entry can have many comments
+- Comments are moderated
+- Spam filtering applied
+
+WeblogEntry → Tag (M:N)
+- Entries can have multiple tags
+- Tags are reused across entries
+- Junction table: weblog_entry_tag
+
+WeblogEntry → Category (M:1)
+- Each entry has one primary category
+- Categories are hierarchical (optional)
+- Blog-specific categories
+
+User → Permission (M:N)
+- Users have roles on specific blogs
+- Roles: Owner, Admin, Author, Limited
+- Junction table: roller_permission
+
+Weblog → MediaFile (1:N)
+- Each blog has media directory structure
+- Files organized in directories
+- Metadata stored, files on filesystem
+
+Planet → Subscription (1:N)
+- Planet aggregates multiple blogs
+- Subscriptions monitored via RSS/Atom
+- Entries cached in planet_entry table
+
+================================================================================
+8. DATABASE UTILITIES (db-utils module)
+================================================================================
+
+Module Location: project-root/db-utils/
+Purpose: Database management and migration tools
+
+Contents:
+- Standalone command-line tools
+- Database migration utilities
+- Schema validation tools
+- Data export/import capabilities
+
+Build:
+- Maven module: org.apache.roller:db-utils
+- Packaged separately from main webapp
+
+Usage:
+- Can be run independently of web application
+- Used for offline database maintenance
+- Supports scripted database operations
+
+================================================================================
+9. ORM CONFIGURATION
+================================================================================
+
+9.1 EclipseLink Configuration (Default)
+
+Persistence Provider: org.eclipse.persistence.jpa.PersistenceProvider
+Version: 4.0.5
+
+Key Features:
+- Full JPA 2.x support
+- Query optimization
+- L2 caching
+- Lazy loading
+- Fetch groups
+- Connection pooling integration
+
+Logging Integration:
+- Uses SLF4J bridge (org.eclipse.persistence.extension)
+- Logs to application's logging system
+- Configurable log levels
+
+9.2 Hibernate Configuration (Alternative)
+
+Persistence Provider: org.hibernate.jpa.HibernatePersistenceProvider
+Note: Commented out in pom.xml (LGPL licensing)
+
+To Use Hibernate:
+1. Uncomment Hibernate dependencies in app/pom.xml
+2. Comment out EclipseLink dependencies
+3. Add to roller-custom.properties:
+   hibernate.transaction.factory_class=org.hibernate.transaction.JDBCTransactionFactory
+4. Rebuild and redeploy
+
+9.3 JPA Entity Annotations
+
+Common Patterns in Roller Entities:
+- @Entity: Marks JPA entity classes
+- @Table: Maps to database table
+- @Id: Primary key field
+- @GeneratedValue: Auto-generated keys
+- @Column: Column mapping and constraints
+- @OneToMany, @ManyToOne, @ManyToMany: Relationships
+- @Temporal: Date/time fields
+- @Lob: Large objects (CLOB, BLOB)
+- @Transient: Non-persistent fields
+- @NamedQuery: Predefined queries
+
+Example Entity Pattern:
+```java
+@Entity
+@Table(name = "weblog")
+public class Weblog {
+    @Id
+    @Column(name = "id", nullable = false)
+    private String id;
+    
+    @Column(name = "name", nullable = false, length = 255)
+    private String name;
+    
+    @ManyToOne
+    @JoinColumn(name = "userid", nullable = false)
+    private User creator;
+    
+    @OneToMany(mappedBy = "weblog", cascade = CascadeType.ALL)
+    private List<WeblogEntry> entries;
+    
+    // Getters and setters...
+}
+```
+
+================================================================================
+10. DATABASE PERFORMANCE OPTIMIZATION
+================================================================================
+
+10.1 Indexing Strategy
+
+Primary Indexes:
+- All primary keys automatically indexed
+- Composite keys where appropriate
+
+Foreign Key Indexes:
+- All foreign key columns indexed
+- Improves join performance
+
+Custom Indexes:
+- Frequently queried columns (publish time, status, etc.)
+- Tag lookups
+- Category hierarchies
+
+Full-Text Indexes:
+- Blog entry content (database-specific)
+- Alternatively: Apache Lucene search index
+
+10.2 Connection Pooling
+
+Recommended: JNDI DataSource with connection pooling
+
+Common Connection Pool Implementations:
+- Apache Commons DBCP
+- HikariCP (recommended for performance)
+- Tomcat JDBC Pool
+- C3P0
+
+Configuration in Tomcat (context.xml):
+```xml
+<Resource name="jdbc/rollerdb" 
+          auth="Container"
+          type="javax.sql.DataSource"
+          username="rolleruser"
+          password="password"
+          driverClassName="com.mysql.cj.jdbc.Driver"
+          url="jdbc:mysql://localhost:3306/roller"
+          maxTotal="50"
+          maxIdle="30"
+          maxWaitMillis="10000"/>
+```
+
+10.3 Query Optimization
+
+JPA Query Optimization:
+- Use named queries for frequently executed queries
+- Fetch strategies: LAZY vs EAGER
+- Batch fetching to reduce N+1 queries
+- Query hints for performance tuning
+
+Caching:
+- L2 cache for frequently accessed entities
+- Query result caching
+- Cache invalidation on updates
+
+Database-Specific Tuning:
+- MySQL: InnoDB engine, proper buffer pool size
+- PostgreSQL: Proper vacuum strategy
+- Oracle: Appropriate tablespaces and indexing
+
+================================================================================
+11. BACKUP AND RECOVERY
+================================================================================
+
+11.1 Backup Strategies
+
+Full Database Backup:
+- Regular scheduled backups (daily recommended)
+- Before any upgrade or migration
+- Store backups offsite
+
+Backup Methods:
+- Database-specific dump tools:
+  * MySQL: mysqldump
+  * PostgreSQL: pg_dump
+  * Oracle: RMAN or expdp
+- File system snapshots (if applicable)
+- Continuous replication to standby database
+
+Media Files Backup:
+- Separate from database backup
+- Location: Configured in roller-custom.properties
+- File system backup tools
+- Sync to cloud storage (optional)
+
+11.2 Recovery Procedures
+
+Database Restore:
+1. Stop Roller application
+2. Drop existing database (if necessary)
+3. Restore from backup:
+   - MySQL: mysql < backup.sql
+   - PostgreSQL: psql < backup.sql
+4. Verify data integrity
+5. Restart application
+
+Point-in-Time Recovery:
+- Requires transaction log backups
+- Database-specific procedures
+- Test recovery procedures regularly
+
+================================================================================
+12. DATABASE SECURITY
+================================================================================
+
+12.1 Access Control
+
+Database User Privileges:
+- Minimum required: SELECT, INSERT, UPDATE, DELETE on Roller tables
+- CREATE, ALTER, DROP: Only during installation/upgrade
+- No super-user privileges required for normal operation
+
+Recommended Practice:
+- Separate database user for Roller application
+- Restrict access to Roller database only
+- No direct database access for end users
+- All access via application layer
+
+12.2 Data Protection
+
+Password Storage:
+- Never store in plain text
+- Use strong hashing algorithms
+- Salt passwords appropriately
+- Handled by Roller security layer
+
+Sensitive Data Encryption:
+- Database connection passwords encrypted
+- OAuth tokens encrypted
+- Consider database-level encryption for compliance
+
+SQL Injection Prevention:
+- JPA/Hibernate parameterized queries
+- No dynamic SQL construction from user input
+- Input validation at application layer
+
+12.3 Auditing
+
+Audit Logging:
+- User login/logout events
+- Content changes (optional)
+- Administrative actions
+- Failed authentication attempts
+
+Implementation:
+- Application-level logging
+- Database triggers (advanced)
+- Third-party audit solutions
+
+================================================================================
+13. DATABASE MONITORING
+================================================================================
+
+13.1 Key Metrics
+
+Performance Metrics:
+- Query response times
+- Connection pool usage
+- Cache hit ratios
+- Slow query log analysis
+
+Capacity Metrics:
+- Database size growth
+- Table sizes
+- Index sizes
+- Transaction log growth
+
+Health Indicators:
+- Connection failures
+- Lock contention
+- Deadlocks
+- Replication lag (if applicable)
+
+13.2 Monitoring Tools
+
+Database-Specific:
+- MySQL: MySQL Workbench, Percona Monitoring
+- PostgreSQL: pgAdmin, pg_stat_* views
+- Oracle: Enterprise Manager
+- SQL Server: SQL Server Management Studio
+
+Application Performance Monitoring (APM):
+- JPA/Hibernate statistics
+- Connection pool metrics
+- Slow query detection
+
+Alerting:
+- Database down alerts
+- Space usage thresholds
+- Performance degradation
+- Failed backup alerts
+
+================================================================================
+14. TROUBLESHOOTING
+================================================================================
+
+14.1 Common Database Issues
+
+Issue: Connection Pool Exhausted
+Symptoms: "No available connections" errors
+Solutions:
+- Increase maxTotal in connection pool configuration
+- Check for connection leaks in application
+- Review connection timeout settings
+- Monitor long-running transactions
+
+Issue: Slow Query Performance
+Symptoms: Application timeouts, poor response time
+Solutions:
+- Analyze slow query log
+- Add missing indexes
+- Optimize JPA fetch strategies
+- Update database statistics
+- Review query execution plans
+
+Issue: Database Lock Contentions
+Symptoms: Updates hanging, timeouts
+Solutions:
+- Review transaction isolation levels
+- Reduce transaction scope
+- Implement optimistic locking where appropriate
+- Check for deadlocks in database logs
+
+Issue: Schema Mismatch After Upgrade
+Symptoms: Application fails to start
+Solutions:
+- Verify database.version property
+- Re-run migration scripts
+- Check migration script logs
+- Restore from backup if necessary
+
+14.2 Diagnostic Queries
+
+Check Database Version:
+```sql
+SELECT * FROM roller_properties WHERE name = 'database.version';
+```
+
+Count Entities:
+```sql
+SELECT COUNT(*) FROM weblog;
+SELECT COUNT(*) FROM weblog_entry;
+SELECT COUNT(*) FROM weblog_entry_comment;
+```
+
+Find Large Tables:
+```sql
+-- MySQL
+SELECT table_name, table_rows, data_length, index_length
+FROM information_schema.tables
+WHERE table_schema = 'roller'
+ORDER BY data_length DESC;
+
+-- PostgreSQL
+SELECT schemaname, tablename, pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename))
+FROM pg_tables
+WHERE schemaname = 'public'
+ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
+```
+
+14.3 Database Repair
+
+Corrupted Tables (MySQL InnoDB):
+- InnoDB usually self-repairs
+- Check error logs
+- Restore from backup if necessary
+
+Index Corruption:
+- Drop and rebuild affected indexes
+- Run database-specific repair tools:
+  * MySQL: REPAIR TABLE
+  * PostgreSQL: REINDEX
+
+Data Consistency:
+- Foreign key constraint violations
+- Orphaned records cleanup
+- Referential integrity checks
+
+================================================================================
+15. RELATED DOCUMENTATION
+================================================================================
+
+See also:
+- 00_PROJECT_OVERVIEW.txt: Overall project documentation
+- 01_APP_MODULE.txt: Application module documentation
+- 04_BUSINESS_LAYER.txt: Business logic and data access
+- 06_CONFIGURATION.txt: Configuration file references
+- 08_DEPLOYMENT.txt: Deployment procedures
+
+External Resources:
+- JPA Specification: https://jakarta.ee/specifications/persistence/
+- EclipseLink Documentation: https://www.eclipse.org/eclipselink/documentation/
+- Specific database documentation for your chosen RDBMS
+
+================================================================================
+END OF DATABASE DOCUMENTATION
+Last Updated: January 2026
+================================================================================

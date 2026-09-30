@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings version="2.0" xmlns="http://java.sun.com/xml/ns/persistence/orm"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm http://java.sun.com/xml/ns/persistence/orm_2_0.xsd">
+    <package>org.apache.roller.weblogger.pojos</package>
+    <entity metadata-complete="true" name="StarredWeblog" class="org.apache.roller.weblogger.pojos.StarredWeblog"
+            access="PROPERTY">
+        <table name="roller_starred_weblog"/>
+        <named-query name="StarredWeblog.getByUser&amp;Weblog">
+            <query>SELECT s FROM StarredWeblog s WHERE s.user = ?1 AND s.weblog = ?2</query>
+        </named-query>
+        <named-query name="StarredWeblog.getByUser">
+            <query>SELECT s FROM StarredWeblog s WHERE s.user = ?1</query>
+        </named-query>
+        <named-query name="StarredWeblog.removeByUser">
+            <query>DELETE FROM StarredWeblog s WHERE s.user = ?1</query>
+        </named-query>
+        <named-query name="StarredWeblog.removeByWeblog">
+            <query>DELETE FROM StarredWeblog s WHERE s.weblog = ?1</query>
+        </named-query>
+        <named-query name="StarredWeblog.getStarredWeblogsByUserOrderByLatestEntry">
+            <query>SELECT s.weblog FROM StarredWeblog s WHERE s.user = ?1 ORDER BY (SELECT MAX(e.pubTime) FROM WeblogEntry e WHERE e.website = s.weblog) DESC NULLS LAST</query>
+        </named-query>
+        <attributes>
+            <id name="id">
+                <column name="id"/>
+            </id>
+            <basic name="dateStarred">
+                <column name="datestarred" insertable="true" updatable="true" unique="false"/>
+                <temporal>TIMESTAMP</temporal>
+            </basic>
+            <many-to-one name="user" target-entity="org.apache.roller.weblogger.pojos.User">
+                <join-column name="userid" insertable="true" updatable="true" nullable="false"/>
+            </many-to-one>
+            <many-to-one name="weblog" target-entity="org.apache.roller.weblogger.pojos.Weblog">
+                <join-column name="weblogid" insertable="true" updatable="true" nullable="false"/>
+            </many-to-one>
+        </attributes>
+    </entity>
+</entity-mappings>

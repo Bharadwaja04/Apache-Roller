@@ -1,0 +1,504 @@
+================================================================================
+FOLDER AND DIRECTORY STRUCTURE DOCUMENTATION
+================================================================================
+
+Project: Apache Roller 6.1.5
+Complete Directory Structure and Organization
+
+================================================================================
+ROOT DIRECTORY OVERVIEW
+================================================================================
+
+project-1-team-20/                          # Project root directory
+├── .git/                                   # Git version control metadata
+├── .github/                                # GitHub-specific configurations
+│   └── workflows/                          # GitHub Actions CI/CD workflows
+├── .gitignore                              # Git ignore patterns
+├── CONTRIBUTING.md                         # Contribution guidelines
+├── Dockerfile                              # Docker build configuration
+├── LICENSE.txt                             # Apache License 2.0
+├── NOTICE.txt                              # Copyright and attribution notices
+├── README.md                               # Project overview and quick start
+├── docker-compose.yml                      # Docker Compose configuration
+├── doap_roller.rdf                         # Project metadata (RDF format)
+├── nbactions.xml                           # NetBeans IDE actions
+├── pom.xml                                 # Parent Maven POM
+├── version-rules.xml                       # Maven version plugin rules
+├── DOCUMENTATION/                          # Generated documentation (this folder)
+│   ├── 00_PROJECT_OVERVIEW.txt
+│   ├── 01_APP_MODULE.txt
+│   ├── 02_DATABASE.txt
+│   ├── 03_WEB_LAYER.txt
+│   └── (additional documentation files)
+├── app/                                    # Main web application module
+├── assembly-release/                       # Release packaging configuration
+├── binary-includes/                        # Binary dependencies and licenses
+├── db-utils/                              # Database utilities module
+├── docs/                                  # User and developer documentation
+├── docker/                                 # Docker scripts and configurations
+├── it-selenium/                            # Selenium integration tests
+└── testing/                                # Testing utilities
+
+================================================================================
+APP MODULE DETAILED STRUCTURE
+================================================================================
+
+app/                                        # Main application module
+├── pom.xml                                # Module build configuration
+├── nbactions.xml                          # NetBeans actions for this module
+│
+├── src/                                    # Source code root
+│   ├── main/                              # Main application code
+│   │   ├── java/                          # Java source files
+│   │   │   ├── META-INF/
+│   │   │   │   └── MANIFEST.MF             # JAR manifest
+│   │   │   └── org/apache/roller/          # Base package
+│   │   │       ├── RollerException.java    # Base exception class
+│   │   │       ├── planet/                 # Planet blog aggregation
+│   │   │       │   ├── business/           # Business logic
+│   │   │       │   ├── config/             # Configuration
+│   │   │       │   ├── pojos/              # Data objects
+│   │   │       │   ├── tasks/              # Scheduled tasks
+│   │   │       │   └── util/               # Utilities
+│   │   │       ├── util/                   # Common utilities
+│   │   │       │   ├── DateUtil.java
+│   │   │       │   ├── ISO8601DateParser.java
+│   │   │       │   ├── PropertyExpander.java
+│   │   │       │   ├── RegexUtil.java
+│   │   │       │   ├── RollerConstants.java
+│   │   │       │   └── UUIDGenerator.java
+│   │   │       └── weblogger/              # Main weblog functionality
+│   │   │           ├── WebloggerException.java
+│   │   │           ├── business/           # Business services
+│   │   │           ├── config/             # Configuration management
+│   │   │           ├── planet/             # Planet integration
+│   │   │           ├── pojos/              # Data model entities
+│   │   │           ├── ui/                 # User interface layer
+│   │   │           ├── util/               # Weblogger utilities
+│   │   │           └── webservices/         # Web services (XML-RPC, etc.)
+│   │   │
+│   │   ├── resources/                      # Java resources
+│   │   │   ├── ApplicationResources.properties      # English (default)
+│   │   │   ├── ApplicationResources_de.properties   # German
+│   │   │   ├── ApplicationResources_es.properties   # Spanish
+│   │   │   ├── ApplicationResources_fr.properties   # French
+│   │   │   ├── ApplicationResources_ja.properties   # Japanese
+│   │   │   ├── ApplicationResources_ko.properties   # Korean
+│   │   │   ├── ApplicationResources_ru.properties   # Russian
+│   │   │   ├── ApplicationResources_zh_CN.properties # Chinese
+│   │   │   ├── bannedwordslist.txt          # Comment spam filter
+│   │   │   ├── log4j2.xml                   # Logging configuration
+│   │   │   ├── propono.properties           # AtomPub configuration
+│   │   │   ├── rome.properties              # RSS/Atom configuration
+│   │   │   ├── struts.properties            # Struts2 settings
+│   │   │   ├── struts.xml                   # Struts2 configuration
+│   │   │   ├── META-INF/
+│   │   │   │   └── persistence.xml          # JPA configuration
+│   │   │   ├── org/apache/roller/
+│   │   │   │   └── weblogger/
+│   │   │   │       └── (package resources)
+│   │   │   └── sql/                         # Database scripts
+│   │   │       ├── control.vm               # Main control template
+│   │   │       ├── createdb.vm              # Create database
+│   │   │       ├── droptables.sql           # Drop tables
+│   │   │       ├── macros.vm                # SQL macros
+│   │   │       ├── dbscripts.properties     # Database list
+│   │   │       ├── *-migration.vm           # Migration scripts
+│   │   │       ├── db2/                     # IBM DB2 scripts
+│   │   │       ├── derby/                   # Apache Derby scripts
+│   │   │       ├── hsqldb/                  # HSQLDB scripts
+│   │   │       ├── mssql/                   # MS SQL Server scripts
+│   │   │       ├── mysql/                   # MySQL scripts
+│   │   │       ├── oracle/                  # Oracle scripts
+│   │   │       └── postgresql/               # PostgreSQL scripts
+│   │   │
+│   │   ├── resources-filtered/             # Filtered resources
+│   │   │   └── roller-version.properties   # Version information
+│   │   │
+│   │   └── webapp/                         # Web application content
+│   │       ├── favicon.svg                 # Default favicon
+│   │       ├── favicon-*.svg               # Favicon variants
+│   │       ├── index.jsp                   # Landing page
+│   │       ├── robots.txt                  # SEO robots file
+│   │       ├── META-INF/                   # Web metadata
+│   │       │   └── context.xml             # Tomcat context
+│   │       ├── WEB-INF/                    # Protected web resources
+│   │       │   ├── web.xml                 # Web app descriptor
+│   │       │   ├── security.xml            # Spring Security config
+│   │       │   ├── classes/                # Compiled classes (build)
+│   │       │   ├── lib/                    # Dependencies (build)
+│   │       │   ├── jsps/                   # JSP includes
+│   │       │   │   └── taglibs-struts2.jsp # Tag library imports
+│   │       │   └── (various config files)
+│   │       ├── images/                     # Image Assets
+│   │       ├── roller-ui/                  # Admin UI resources
+│   │       │   ├── index.jsp               # Admin dashboard
+│   │       │   ├── login-redirect.jsp
+│   │       │   ├── logout-redirect.jsp
+│   │       │   ├── errors/                 # Error pages
+│   │       │   │   ├── 403.jsp
+│   │       │   │   ├── 404.jsp
+│   │       │   │   ├── denied.jsp
+│   │       │   │   └── error.jsp
+│   │       │   ├── scripts/                # JavaScript files
+│   │       │   ├── styles/                 # CSS stylesheets
+│   │       │   └── (additional UI resources)
+│   │       ├── theme/                      # Theme resources
+│   │       │   ├── scripts/
+│   │       │   ├── styles/
+│   │       │   └── images/
+│   │       └── themes/                     # Velocity blog themes
+│   │           ├── basic/                  # Basic theme
+│   │           │   ├── _day.vm
+│   │           │   ├── permalink.vm
+│   │           │   ├── searchresults.vm
+│   │           │   ├── sidebar.vm
+│   │           │   └── weblog.vm
+│   │           ├── basicmobile/            # Mobile theme
+│   │           ├── fauxcoly/               # Multi-column theme
+│   │           ├── frontpage/              # Frontpage theme
+│   │           └── gaurav/                 # Alternative theme
+│   │
+│   └── test/                              # Test code
+│       ├── java/                          # Unit test source
+│       │   └── org/apache/roller/
+│       │       └── (test classes)
+│       └── resources/                      # Test resources
+│           ├── roller-jettyrun.properties  # Jetty config
+│           ├── jetty.xml                   # Jetty descriptor
+│           └── (test data files)
+│
+└── target/                                # Build output (generated)
+    ├── classes/                           # Compiled classes
+    ├── test-classes/                      # Compiled test classes
+    ├── roller/                            # Exploded WAR
+    ├── roller.war                         # Deployable WAR file
+    └── (other build artifacts)
+
+================================================================================
+DB-UTILS MODULE STRUCTURE
+================================================================================
+
+db-utils/                                  # Database utilities module
+├── pom.xml                               # Module configuration
+├── src/
+│   ├── main/
+│   │   ├── java/                         # Utility Java classes
+│   │   │   └── org/apache/roller/
+│   │   │       └── (database utilities)
+│   │   └── resources/                     # SQL scripts and configs
+│   └── test/
+│       └── (test files)
+└── target/                               # Build output
+
+================================================================================
+IT-SELENIUM MODULE STRUCTURE
+================================================================================
+
+it-selenium/                              # Integration tests
+├── pom.xml                              # Test module configuration
+├── src/
+│   └── test/
+│       ├── java/                        # Selenium test classes
+│       │   └── org/apache/roller/
+│       │       └── selenium/
+│       │           └── (test files)
+│       └── resources/                    # Test resources
+└── target/                              # Test results
+
+Note: Currently commented out in parent POM
+
+================================================================================
+ASSEMBLY-RELEASE MODULE STRUCTURE
+================================================================================
+
+assembly-release/                         # Release packaging
+├── pom.xml                              # Assembly configuration
+├── sign-release.sh                      # Release signing script
+└── src/
+    └── main/
+        └── assembly/                     # Assembly descriptors
+            └── (packaging configs)
+
+Purpose: Creates distribution packages (ZIP, TAR.GZ) for official releases
+
+================================================================================
+DOCS DIRECTORY STRUCTURE
+================================================================================
+
+docs/                                     # Documentation
+├── README.md                            # Documentation index
+├── roller-install-guide.adoc            # Installation guide
+├── roller-user-guide.adoc               # User guide
+├── roller-template-guide.adoc            # Template guide
+├── images/                              # Documentation images
+│   ├── db-connection-error.png
+│   ├── roller-home.png
+│   └── (other screenshots)
+├── readme-images/                       # README images
+├── examples/                            # Code examples
+│   ├── configs/                         # Configuration examples
+│   ├── macros/                          # Velocity macro examples
+│   ├── plugins/                         # Plugin examples
+│   ├── rollertask/                      # Task examples
+│   └── scripting/                       # Scripting examples
+└── (additional documentation)
+
+================================================================================
+DOCKER DIRECTORY STRUCTURE
+================================================================================
+
+docker/                                   # Docker support files
+├── entry-point.sh                       # Container entry point
+└── wait-for-it.sh                       # Dependency wait script
+
+Root Files:
+├── Dockerfile                           # Docker image build
+└── docker-compose.yml                   # Multi-container setup
+
+================================================================================
+TESTING DIRECTORY STRUCTURE
+================================================================================
+
+testing/                                  # Testing utilities
+├── README.txt                           # Testing documentation
+└── (test data and utilities)
+
+================================================================================
+BINARY-INCLUDES STRUCTURE
+================================================================================
+
+binary-includes/                          # Binary dependencies
+├── LICENSE.txt                          # Licenses for binaries
+└── NOTICE.txt                           # Attribution notices
+
+Purpose: Licenses for binary-only dependencies bundled with distribution
+
+================================================================================
+BUILD OUTPUT DIRECTORY (target/)
+================================================================================
+
+Note: Generated during build, not in source control
+
+app/target/                              # Application build output
+├── classes/                             # Compiled .class files
+│   ├── org/apache/roller/              # Package structure mirrors source
+│   ├── ApplicationResources*.properties
+│   ├── dbscripts/                      # Generated SQL scripts
+│   │   ├── derby/
+│   │   ├── mysql/
+│   │   ├── postgresql/
+│   │   └── (other databases)
+│   ├── log4j2.xml
+│   ├── struts.xml
+│   └── META-INF/
+│       └── persistence.xml
+├── test-classes/                        # Compiled test classes
+├── roller/                              # Exploded WAR directory
+│   ├── META-INF/
+│   ├── WEB-INF/
+│   │   ├── classes/                    # Same as target/classes
+│   │   └── lib/                        # All dependency JARs
+│   ├── index.jsp
+│   ├── roller-ui/
+│   ├── themes/
+│   └── (all webapp resources)
+├── roller.war                           # Deployable WAR file
+├── roller-classes.jar                   # Classes JAR (for it-selenium)
+├── maven-archiver/                      # Maven metadata
+├── surefire-reports/                    # Test reports
+└── (other Maven generated files)
+
+================================================================================
+CONFIGURATION FILES LOCATIONS
+================================================================================
+
+Application Configuration:
+- roller-custom.properties → External (configured at deployment)
+  Typical locations:
+  - /usr/local/roller/roller-custom.properties (Linux)
+  - C:\roller\roller-custom.properties (Windows)
+  - User home directory
+  - Specified via system property: -Droller.custom.config=/path/to/file
+
+Logging Configuration:
+- log4j2.xml → app/src/main/resources/log4j2.xml
+
+Database Configuration:
+- persistence.xml → app/src/main/resources/META-INF/persistence.xml
+- roller-custom.properties (database connection details)
+
+Web Application:
+- web.xml → app/src/main/webapp/WEB-INF/web.xml
+- security.xml → WEB-INF/security.xml (Spring Security)
+
+Struts2:
+- struts.xml → app/src/main/resources/struts.xml
+- struts.properties → app/src/main/resources/struts.properties
+
+RSS/Atom:
+- rome.properties → app/src/main/resources/rome.properties
+- propono.properties → app/src/main/resources/propono.properties
+
+================================================================================
+IMPORTANT FILE TYPES BY EXTENSION
+================================================================================
+
+.java       → Java source code
+.class      → Compiled Java bytecode (in target/)
+.jsp        → JavaServer Pages (dynamic HTML)
+.vm         → Velocity templates (blog themes)
+.xml        → Configuration files (Maven, Spring, etc.)
+.properties → Configuration properties
+.sql        → SQL scripts
+.txt        → Text documentation
+.md         → Markdown documentation
+.adoc       → AsciiDoc documentation
+.sh         → Shell scripts (Linux/Mac)
+.bat        → Batch scripts (Windows)
+.war        → Web Application Archive (deployable)
+.jar        → Java Archive (libraries)
+
+================================================================================
+KEY DIRECTORIES BY PURPOSE
+================================================================================
+
+Source Code:
+- app/src/main/java/              → Java source
+- app/src/test/java/              → Test source
+
+Configuration:
+- app/src/main/resources/         → Application config
+- app/src/main/webapp/WEB-INF/    → Web app config
+
+Web Content:
+- app/src/main/webapp/            → Static and dynamic web content
+- app/src/main/webapp/themes/     → Blog themes
+
+Database:
+- app/src/main/resources/sql/     → Database scripts
+- db-utils/                       → Database utilities
+
+Documentation:
+- docs/                           → User/admin documentation
+- README.md                       → Quick start
+- DOCUMENTATION/                  → Complete documentation (generated)
+
+Build Configuration:
+- pom.xml files                   → Maven build
+- Dockerfile                      → Docker build
+- docker-compose.yml              → Multi-container setup
+
+Testing:
+- app/src/test/                   → Unit tests
+- it-selenium/                    → Integration tests
+- testing/                        → Test utilities
+
+Output:
+- app/target/                     → Build artifacts
+- app/target/roller.war           → Deployable package
+
+================================================================================
+DEPLOYMENT PACKAGE STRUCTURE
+================================================================================
+
+roller.war (Deployable Package)
+├── META-INF/
+│   ├── MANIFEST.MF
+│   └── maven/...
+├── WEB-INF/
+│   ├── classes/                  → All compiled classes and resources
+│   │   ├── org/apache/roller/    → Package structure
+│   │   ├── ApplicationResources*.properties
+│   │   ├── dbscripts/            → Database scripts
+│   │   ├── log4j2.xml
+│   │   ├── META-INF/persistence.xml
+│   │   └── (all resource files)
+│   ├── lib/                      → All dependency JARs (~50-80 JARs)
+│   │   ├── spring-*.jar
+│   │   ├── struts2-*.jar
+│   │   ├── velocity-*.jar
+│   │   ├── hibernate-*.jar or eclipselink-*.jar
+│   │   └── (all dependencies)
+│   ├── web.xml                   → Web app descriptor
+│   ├── security.xml              → Spring Security
+│   └── jsps/                     → JSP includes
+├── roller-ui/                    → Admin UI
+│   ├── *.jsp
+│   ├── errors/
+│   ├── scripts/
+│   └── styles/
+├── themes/                       → Blog themes
+│   ├── basic/
+│   ├── fauxcoly/
+│   └── (other themes)
+├── theme/                        → Theme resources
+├── images/                       → Images
+├── index.jsp                     → Landing page
+├── robots.txt
+└── favicon*.svg
+
+Total WAR Size: Approximately 50-80 MB
+
+================================================================================
+GIT REPOSITORY STRUCTURE
+================================================================================
+
+.git/                             → Git metadata (not deployed)
+.gitignore                        → Ignored files/patterns
+
+Ignored Items (not in repository):
+- target/                         → Build output
+- *.class                         → Compiled classes
+- *.war, *.jar                    → Build artifacts
+- .settings/                      → IDE settings
+- .classpath, .project            → Eclipse files
+- *.iml, .idea/                   → IntelliJ IDEA files
+- node_modules/                   → Node dependencies (if any)
+- temp files, logs, etc.
+
+================================================================================
+DEVELOPMENT ENVIRONMENT SETUP
+================================================================================
+
+Required Directories (for development):
+1. Clone repository → project-1-team-20/
+2. Build: mvn install → Creates target/ directories
+3. External config → roller-custom.properties (as needed)
+
+IDE Project Structure:
+- Import as Maven project
+- IDE auto-configures from pom.xml files
+- Source folders detected automatically
+- Output folders configured automatically
+
+================================================================================
+PRODUCTION DEPLOYMENT STRUCTURE
+================================================================================
+
+Tomcat Deployment:
+/path/to/tomcat/
+├── webapps/
+│   ├── roller.war                → Deploy here
+│   └── roller/                   → Auto-extracted
+├── conf/
+│   └── Catalina/localhost/
+│       └── roller.xml            → Context config (optional)
+└── logs/
+    └── catalina.out              → Application logs
+
+External Configuration:
+/etc/roller/
+└── roller-custom.properties      → External configuration
+
+Media Files Storage:
+/var/roller/mediafiles/           → Uploaded files
+
+Database:
+- Separate database server
+- Connected via JDBC or JNDI
+
+================================================================================
+END OF FOLDER STRUCTURE DOCUMENTATION
+Last Updated: January 2026
+================================================================================
